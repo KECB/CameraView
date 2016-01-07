@@ -43,6 +43,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
    * supported preview sizes in current devices camera.
    */
   private List<Camera.Size> mSupportedSizes;
+  private int supportedWidth;
+  private int supportedHeight;
 
   /**
    * Capture type for storage, current only support video type
@@ -81,6 +83,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     mSupportedSizes = mCamera.getParameters().getSupportedPreviewSizes();
     for (Camera.Size size : mSupportedSizes) {
+      if (640 <= size.width & size.width <= 1280) {
+        supportedWidth = size.width;
+        supportedHeight = size.height;
+        //parameters.setPreviewSize(size.width, size.height);
+        //parameters.setPictureSize(size.width, size.height);
+        break;
+      }
       Log.d(TAG, "size width:" + size.width + "; size height:" + size.height);
     }
   }
@@ -161,7 +170,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
 
     mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-    mMediaRecorder.setVideoSize(640,480);
+    mMediaRecorder.setVideoSize(supportedWidth,supportedHeight);
     mMediaRecorder.setVideoFrameRate(30);
     mMediaRecorder.setVideoEncodingBitRate(
         1 * 1024 * 1024); // Set this to make video more clarity

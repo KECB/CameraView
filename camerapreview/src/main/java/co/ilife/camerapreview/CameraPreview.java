@@ -51,6 +51,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
    */
   public static final int MEDIA_TYPE_VIDEO = 2;
 
+  private String currentRecordVideoFileUrl = "";
+
   //public CameraPreview(Context context) {
   //  super(context);
   //  mCamera = getCameraInstance();
@@ -182,7 +184,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     //mMediaRecorder.setProfile(profile);
 
     // Step 4: Set ouput file
-    mMediaRecorder.setOutputFile(getOutputMediaFile(MEDIA_TYPE_VIDEO).toString());
+    currentRecordVideoFileUrl = getOutputMediaFile(MEDIA_TYPE_VIDEO).toString();
+    mMediaRecorder.setOutputFile(currentRecordVideoFileUrl);
 
     // Step 5: Set the preview output
     mMediaRecorder.setPreviewDisplay(getHolder().getSurface());
@@ -274,4 +277,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     return mediaFile;
   }
 
+  public String getCurrentRecordVideoFileUrl() {
+    return currentRecordVideoFileUrl;
+  }
 }

@@ -1,5 +1,5 @@
 <resources>
-  <string name="app_name">WeChatVideo</string>
+  <string name="app_name">CameraViewSample</string>
   <string name="action_settings">Settings</string>
   <string name="title_activity_success">SuccessActivity</string>
   <string name="title_activity_video_capture">VideoCapture</string>

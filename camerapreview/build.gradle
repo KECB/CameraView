@@ -98,3 +98,10 @@ artifacts {
   archives sourcesJar
 }
 
+task makeJar(type: Copy) {
+  delete 'build/libs/cameraview'+version+'.jar'
+  from('build/intermediates/bundles/release/')
+  into('build/libs/')
+  include('classes.jar')
+  rename ('classes.jar', 'cameraview'+version+'.jar')
+}

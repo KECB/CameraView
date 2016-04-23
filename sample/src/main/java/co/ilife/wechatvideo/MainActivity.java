@@ -30,7 +30,6 @@ public class MainActivity extends AppCompatActivity {
     setSupportActionBar(toolbar);
 
     ((AudioManager)getSystemService(Context.AUDIO_SERVICE)).setStreamMute(AudioManager.STREAM_SYSTEM,true);
-
      //Create our Preview view and set it as the content of our activity.
     mPreview = new CameraPreview(this,null);
     FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);

@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -19,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
   public static final int MEDIA_TYPE_VIDEO = 2;
 
   private CameraPreview mPreview;
-  Button captureButton;
+  Button captureButton,switchCameraButton;
 
   private boolean isRecording = false;
 
@@ -32,7 +33,13 @@ public class MainActivity extends AppCompatActivity {
     ((AudioManager)getSystemService(Context.AUDIO_SERVICE)).setStreamMute(AudioManager.STREAM_SYSTEM,true);
      //Create our Preview view and set it as the content of our activity.
     mPreview = new CameraPreview(this,null);
-    FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+    mPreview.setOnTouchListener(new View.OnTouchListener() {
+      @Override public boolean onTouch(View v, MotionEvent event) {
+        mPreview.autoFocus();
+        return false;
+      }
+    });
+    final FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
     preview.addView(mPreview);
     //mPreview = (CameraPreview) findViewById(R.id.camera_preview);
 
@@ -49,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
           setCaptureButtonText("Capture");
         }else {
           // initialize video camera
-          if (mPreview.prepareVideoRecorder()) {
+          if (mPreview.prepareVideoRecorder(1)) {
             // Camera is available and unlocked, MediaRecorder is prepared,
             // now you can start recording
             mPreview.startRecord();
@@ -63,6 +70,15 @@ public class MainActivity extends AppCompatActivity {
             // inofrm user
           }
         }
+      }
+    });
+
+    switchCameraButton = (Button) findViewById(R.id.button_switch);
+    switchCameraButton.setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        mPreview.switchCamera();
+        preview.removeAllViews();
+        preview.addView(mPreview);
       }
     });
 

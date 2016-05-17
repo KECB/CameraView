@@ -33,6 +33,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   private SurfaceHolder mHolder;
 
   private Camera mCamera;
+  private int mCurrentCameraId = 1;
 
   /**
    * Recorder video
@@ -73,15 +74,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
   public CameraPreview(Context context, @Nullable AttributeSet attrs) {
     super(context, attrs);
-    mCamera = getCameraInstance();
+    mCamera = getCameraInstance(mCurrentCameraId);
 
-    // Install a SurfaceHolder.Callback so we get notified when the
-    // underlying surface is created and destroyed.
-    mHolder = getHolder();
-    mHolder.addCallback(this);
-
-    // deprecated setting, but required on Android versions prior to 3.0
-    mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+    initHolder();
 
     mSupportedSizes = mCamera.getParameters().getSupportedPreviewSizes();
     for (Camera.Size size : mSupportedSizes) {
@@ -94,6 +89,23 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
       }
       Log.d(TAG, "size width:" + size.width + "; size height:" + size.height);
     }
+  }
+
+  private void initHolder() {
+
+    // Install a SurfaceHolder.Callback so we get notified when the
+    // underlying surface is created and destroyed.
+    mHolder = getHolder();
+    mHolder.addCallback(this);
+
+    // deprecated setting, but required on Android versions prior to 3.0
+    mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+  }
+
+  private void destoryHolder(){
+    // Destroy previuos Holder
+    surfaceDestroyed(mHolder);
+    mHolder.removeCallback(this);
   }
 
   @Override public void surfaceCreated(SurfaceHolder holder) {
@@ -145,20 +157,20 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   }
 
   /** A safe way to get an instance of the Camera object. */
-  public static Camera getCameraInstance() {
+  public static Camera getCameraInstance( int camId) {
     Camera c = null;
     try {
-      c = Camera.open(); // attempt to get a Camera instance
+      c = Camera.open(camId); // attempt to get a Camera instance
     } catch (Exception e) {
       // Camera is not available (in use or does not exist)
     }
     return c; // returns null if camera is unavailable
   }
 
-  public boolean prepareVideoRecorder() {
+  public boolean prepareVideoRecorder(int camId) {
 
     if (mCamera == null) {
-      mCamera = getCameraInstance();
+      mCamera = getCameraInstance(camId);
     }
     mMediaRecorder = new MediaRecorder();
 
@@ -279,5 +291,20 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
   public String getCurrentRecordVideoFileUrl() {
     return currentRecordVideoFileUrl;
+  }
+
+  public void autoFocus(){
+    mCamera.cancelAutoFocus();
+    mCamera.autoFocus(new Camera.AutoFocusCallback() {
+      @Override public void onAutoFocus(boolean success, Camera camera) {
+        if (!success) Log.d(TAG, "onAutoFocus: Failed");
+      }
+    });
+  }
+
+  public void switchCamera(){
+    mCurrentCameraId = mCurrentCameraId == 0 ? 1 : 0;
+    destoryHolder();
+    prepareVideoRecorder(mCurrentCameraId);
   }
 }

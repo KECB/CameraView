@@ -6,7 +6,7 @@ android {
   buildToolsVersion "23.0.2"
 
   defaultConfig {
-    applicationId "co.ilife.wechatvideo"
+    applicationId "co.ilife.sample.camerapreview"
     minSdkVersion 14
     targetSdkVersion 23
     versionCode 1
@@ -25,6 +25,7 @@ dependencies {
   testCompile 'junit:junit:4.12'
   compile 'com.android.support:appcompat-v7:23.1.1'
   compile 'com.android.support:design:23.1.1'
+  compile 'com.akexorcist:RoundCornerProgressBar:2.0.3'
   //  compile 'co.ilife.camerapreview:camerapreview:0.0.3'
   compile project(':camerapreview')
 }

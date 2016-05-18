@@ -1,4 +1,4 @@
-package co.ilife.wechatvideo;
+package co.ilife.sample.camerapreview;
 
 import android.content.Context;
 import android.media.AudioManager;
@@ -48,7 +48,7 @@ public class NormalActivity extends AppCompatActivity {
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
+    setContentView(R.layout.activity_normal);
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
 
@@ -79,7 +79,7 @@ public class NormalActivity extends AppCompatActivity {
           isRecording = false;
         }else {
           // initialize video camera
-          if (mPreview.prepareVideoRecorder(1)) {
+          if (mPreview.prepareVideoRecorder(0)) {
             // Camera is available and unlocked, MediaRecorder is prepared,
             // now you can start recording
             mPreview.startRecord();
@@ -126,6 +126,7 @@ public class NormalActivity extends AppCompatActivity {
 
   @Override public void onResume() {
     super.onResume();
+    mPreview.prepareVideoRecorder(0);
   }
 
   @Override protected void onPause() {

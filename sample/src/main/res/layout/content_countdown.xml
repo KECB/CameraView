@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+  <FrameLayout
+      android:id="@+id/camera_preview"
+
+      android:layout_width="fill_parent"
+      android:layout_height="fill_parent"
+      android:layout_weight="1"
+      >
+    <!--<co.ilife.camerapreview.CameraPreview-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent"-->
+    <!--/>-->
+  </FrameLayout>
+
+
+  <com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar
+      android:id="@+id/progress_countdown"
+      android:layout_width="match_parent"
+      android:layout_height="10dp"
+      app:rcSecondaryProgress="0"
+      app:rcRadius="0dp"
+      app:rcBackgroundPadding="0dp"
+      app:rcReverse="false"
+      app:rcProgressColor="#56d2c2"
+      app:rcSecondaryProgressColor="#258074"
+      app:rcBackgroundColor="#757575" />
+
+  <RelativeLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:padding="5dp"
+      android:orientation="horizontal"
+      android:background="@color/colorPrimary">
+
+    <ImageButton
+        android:id="@+id/button_capture"
+        android:text="Capture"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:layout_centerInParent="true"
+        android:background="@mipmap/record"
+        />
+    <ImageButton
+        android:id="@+id/button_switch"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="center"
+        android:layout_alignParentLeft="true"
+        android:layout_centerInParent="true"
+        android:layout_marginLeft="10dp"
+        android:background="@mipmap/back_camera"/>
+    <TextView
+        android:id="@+id/tv_timer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerInParent="true"
+        android:layout_marginRight="10dp"
+        android:textColor="@android:color/white"
+        android:textSize="20dp"
+        android:text="--:--"/>
+  </RelativeLayout>
+
+
+</LinearLayout>

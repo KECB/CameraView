@@ -33,7 +33,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   private SurfaceHolder mHolder;
 
   private Camera mCamera;
-  private int mCurrentCameraId = 1;
+  private int mCurrentCameraId = 0;
 
   /**
    * Recorder video
@@ -105,7 +105,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   private void destoryHolder(){
     // Destroy previuos Holder
     surfaceDestroyed(mHolder);
-    mHolder.removeCallback(this);
   }
 
   @Override public void surfaceCreated(SurfaceHolder holder) {
@@ -154,6 +153,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
   @Override public void surfaceDestroyed(SurfaceHolder holder) {
     // empty. Take care of releasing the Camera preview in your activity.
+    //mHolder.removeCallback(this);
   }
 
   /** A safe way to get an instance of the Camera object. */
@@ -189,7 +189,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     mMediaRecorder.setVideoEncodingBitRate(
         1 * 1024 * 1024); // Set this to make video more clarity
     mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-    mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+    mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
 
     // Step 3: Set a CamcorderProfile (requires API Level 8 or higher
     //CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
@@ -303,8 +303,12 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   }
 
   public void switchCamera(){
+    //mHolder = null;
+    mCamera.stopPreview();
+    mCamera.release();
     mCurrentCameraId = mCurrentCameraId == 0 ? 1 : 0;
-    destoryHolder();
-    prepareVideoRecorder(mCurrentCameraId);
+    Log.d(TAG, "switchCamera: "+ mCurrentCameraId);
+    initHolder();
+    mCamera = getCameraInstance(mCurrentCameraId);
   }
 }

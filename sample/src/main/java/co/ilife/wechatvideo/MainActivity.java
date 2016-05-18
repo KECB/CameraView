@@ -3,14 +3,16 @@ package co.ilife.wechatvideo;
 import android.content.Context;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import co.ilife.camerapreview.CameraPreview;
 
 public class MainActivity extends AppCompatActivity {
@@ -20,9 +22,29 @@ public class MainActivity extends AppCompatActivity {
   public static final int MEDIA_TYPE_VIDEO = 2;
 
   private CameraPreview mPreview;
-  Button captureButton,switchCameraButton;
+  private ImageButton switchCameraButton;
+  private ImageButton captureButton;
+  private TextView timerText;
 
   private boolean isRecording = false;
+  private long mStartTime = 0;
+
+  //runs without a timer by reposting this handler at the end of the runnable
+  Handler timerHandler = new Handler();
+  Runnable timerRunnable = new Runnable() {
+
+    @Override
+    public void run() {
+      long millis = System.currentTimeMillis() - mStartTime;
+      int seconds = (int) (millis / 1000);
+      int minutes = seconds / 60;
+      seconds = seconds % 60;
+
+      timerText.setText(String.format("%d:%02d", minutes, seconds));
+
+      timerHandler.postDelayed(this, 500);
+    }
+  };
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -43,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     preview.addView(mPreview);
     //mPreview = (CameraPreview) findViewById(R.id.camera_preview);
 
-    captureButton = (Button) findViewById(R.id.button_capture);
+    captureButton = (ImageButton) findViewById(R.id.button_capture);
     captureButton.setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         if (isRecording) {
@@ -53,7 +75,8 @@ public class MainActivity extends AppCompatActivity {
           mPreview.lockCamera();             // take camera access back from MediaRecorder
 
           // inform the user that recording has stopped
-          setCaptureButtonText("Capture");
+          setCaptureButtonBackground(R.mipmap.record);
+          isRecording = false;
         }else {
           // initialize video camera
           if (mPreview.prepareVideoRecorder(1)) {
@@ -62,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
             mPreview.startRecord();
 
             // inform the user that recording has started
-            setCaptureButtonText("Stop");
+            setCaptureButtonBackground(R.mipmap.stop);
             isRecording = true;
           } else {
             // prepare didn't work, release the camera
@@ -70,22 +93,35 @@ public class MainActivity extends AppCompatActivity {
             // inofrm user
           }
         }
+        countRecordTime(isRecording);
       }
     });
 
-    switchCameraButton = (Button) findViewById(R.id.button_switch);
+    switchCameraButton = (ImageButton) findViewById(R.id.button_switch);
     switchCameraButton.setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        mPreview.switchCamera();
+        int currentCamera = mPreview.switchCamera();
         preview.removeAllViews();
         preview.addView(mPreview);
+        switchCameraButton.setBackgroundResource(currentCamera==0? R.mipmap.back_camera: R.mipmap.front_camera);
       }
     });
+
+    timerText = (TextView) findViewById(R.id.tv_timer);
 
   }
 
-  private void setCaptureButtonText(String text) {
-    captureButton.setText(text);
+  private void countRecordTime(boolean isRecording) {
+    if (isRecording){
+      mStartTime = System.currentTimeMillis();
+      timerHandler.postDelayed(timerRunnable, 0);
+    }else {
+      timerHandler.removeCallbacks(timerRunnable);
+    }
+  }
+
+  private void setCaptureButtonBackground(int resId) {
+    captureButton.setBackgroundResource(resId);
   }
 
   @Override public void onResume() {

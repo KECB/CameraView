@@ -302,7 +302,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     });
   }
 
-  public void switchCamera(){
+  public int switchCamera(){
     //mHolder = null;
     mCamera.stopPreview();
     mCamera.release();
@@ -310,5 +310,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     Log.d(TAG, "switchCamera: "+ mCurrentCameraId);
     initHolder();
     mCamera = getCameraInstance(mCurrentCameraId);
+    return mCurrentCameraId;
   }
 }

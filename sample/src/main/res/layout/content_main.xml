@@ -17,25 +17,41 @@
       <!--/>-->
   </FrameLayout>
 
-  <LinearLayout
+  <RelativeLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:orientation="horizontal">
-    <Button
+      android:padding="5dp"
+      android:orientation="horizontal"
+      android:background="@color/colorPrimary">
+    <ImageButton
         android:id="@+id/button_capture"
         android:text="Capture"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_gravity="center"
+        android:layout_centerInParent="true"
+        android:background="@mipmap/record"
         />
-    <Button
+    <ImageButton
         android:id="@+id/button_switch"
-        android:text="Switch Camera"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="center"
+        android:layout_alignParentLeft="true"
+        android:layout_centerInParent="true"
+        android:layout_marginLeft="10dp"
+        android:background="@mipmap/back_camera"/>
+    <TextView
+        android:id="@+id/tv_timer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        />
-  </LinearLayout>
+        android:layout_alignParentRight="true"
+        android:layout_centerInParent="true"
+        android:layout_marginRight="10dp"
+        android:textColor="@android:color/white"
+        android:textSize="20dp"
+        android:text="--:--"/>
+  </RelativeLayout>
 
 
 </LinearLayout>

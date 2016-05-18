@@ -6,6 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
+ * Media recorder settings
  * Created by KECB on 5/16/16.
  */
 public class BCamera {

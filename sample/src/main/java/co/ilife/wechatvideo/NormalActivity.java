@@ -15,9 +15,9 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import co.ilife.camerapreview.CameraPreview;
 
-public class MainActivity extends AppCompatActivity {
+public class NormalActivity extends AppCompatActivity {
 
-  private final String TAG = MainActivity.class.getSimpleName();
+  private final String TAG = NormalActivity.class.getSimpleName();
 
   public static final int MEDIA_TYPE_VIDEO = 2;
 

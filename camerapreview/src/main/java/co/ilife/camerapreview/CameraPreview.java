@@ -75,9 +75,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   public CameraPreview(Context context, @Nullable AttributeSet attrs) {
     super(context, attrs);
     mCamera = getCameraInstance(mCurrentCameraId);
-
-    initHolder();
-
+    //initHolder();
     mSupportedSizes = mCamera.getParameters().getSupportedPreviewSizes();
     for (Camera.Size size : mSupportedSizes) {
       if (640 <= size.width & size.width <= 1280) {
@@ -91,23 +89,25 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     }
   }
 
-  private void initHolder() {
+  public void initHolder() {
 
     // Install a SurfaceHolder.Callback so we get notified when the
     // underlying surface is created and destroyed.
     mHolder = getHolder();
     mHolder.addCallback(this);
+    Log.d(TAG, "initHolder: "+ mHolder.getSurface().toString());
 
     // deprecated setting, but required on Android versions prior to 3.0
     mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
   }
 
-  private void destoryHolder(){
+  public void destoryHolder(){
     // Destroy previuos Holder
     surfaceDestroyed(mHolder);
   }
 
   @Override public void surfaceCreated(SurfaceHolder holder) {
+    Log.d(TAG, "surfaceCreated: ");
     // The Surface has been created, now tell the camera where to draw the preview.
     try {
 
@@ -126,6 +126,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   }
 
   @Override public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    Log.d(TAG, "surfaceChanged: ");
     // If your preview can change or rotate, take care of those events here.
     // Make sure to stop the preview before resizing or reformating it.
 
@@ -159,8 +160,10 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   }
 
   @Override public void surfaceDestroyed(SurfaceHolder holder) {
+    Log.d(TAG, "surfaceDestroyed: ");
     // empty. Take care of releasing the Camera preview in your activity.
-    //mHolder.removeCallback(this);
+    mHolder.removeCallback(this);
+
   }
 
   /** A safe way to get an instance of the Camera object. */
@@ -235,6 +238,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
   public void releaseCamera() {
     if (mCamera != null) {
+      mCamera.stopPreview();
       mCamera.release();        // release the camera for other applications
       mCamera = null;
     }
@@ -301,7 +305,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   }
 
   public void autoFocus(){
-    mCamera.cancelAutoFocus();
+    //mCamera.cancelAutoFocus();
     mCamera.autoFocus(new Camera.AutoFocusCallback() {
       @Override public void onAutoFocus(boolean success, Camera camera) {
         if (!success) Log.d(TAG, "onAutoFocus: Failed");

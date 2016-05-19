@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -28,6 +29,7 @@ public class NormalActivity extends AppCompatActivity {
 
   private boolean isRecording = false;
   private long mStartTime = 0;
+  FrameLayout preview;
 
   //runs without a timer by reposting this handler at the end of the runnable
   Handler timerHandler = new Handler();
@@ -61,7 +63,7 @@ public class NormalActivity extends AppCompatActivity {
         return false;
       }
     });
-    final FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+    preview = (FrameLayout) findViewById(R.id.camera_preview);
     preview.addView(mPreview);
     //mPreview = (CameraPreview) findViewById(R.id.camera_preview);
 
@@ -126,11 +128,25 @@ public class NormalActivity extends AppCompatActivity {
 
   @Override public void onResume() {
     super.onResume();
+    preview.removeAllViews();
+    preview.addView(mPreview);
+    Log.d(TAG, "onResume: "+TAG);
+    mPreview.initHolder();
     mPreview.prepareVideoRecorder(0);
+
   }
 
   @Override protected void onPause() {
     super.onPause();
+    Log.d(TAG, "onPause: "+TAG);
+
+    mPreview.releaseMediaRecorder();
+    mPreview.releaseCamera();
+    mPreview.destoryHolder();
+  }
+  @Override protected void onDestroy(){
+    super.onDestroy();
+    Log.d(TAG, "onDestroy: "+TAG);
     mPreview.releaseMediaRecorder();
     mPreview.releaseCamera();
   }

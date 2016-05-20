@@ -9,8 +9,10 @@ import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.FrameLayout;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -46,6 +48,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   private List<Camera.Size> mSupportedSizes;
   private int supportedWidth;
   private int supportedHeight;
+
+  private int mRatioWidth = 0;
+  private int mRatioHeight = 0;
 
   /**
    * Capture type for storage, current only support video type
@@ -87,6 +92,42 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
       }
       Log.d(TAG, "size width:" + size.width + "; size height:" + size.height);
     }
+  }
+
+  /**
+   * Sets the aspect ratio for this view. The size of the view will be measured based on the ratio
+   * calculated from the parameters.
+   *
+   * @param width  Relative horizontal size
+   * @param height Relative vertical size
+   */
+  public void setAspectRatio(int width, int height) {
+    mRatioWidth = width;
+    mRatioHeight = height;
+    requestLayout();
+  }
+
+  @Override
+  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    // Set
+    FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+    params.gravity = Gravity.CENTER;
+    setLayoutParams(params);
+    //
+    int width = MeasureSpec.getSize(widthMeasureSpec);
+    int height = MeasureSpec.getSize(heightMeasureSpec);
+    if (0 == mRatioWidth || 0 == mRatioHeight) {
+      setMeasuredDimension(width, height);
+    } else {
+      if (width < height * mRatioWidth / mRatioHeight) {
+        setMeasuredDimension(width, width * mRatioHeight / mRatioWidth);
+      } else {
+        setMeasuredDimension(height * mRatioWidth / mRatioHeight, height);
+      }
+    }
+
+
   }
 
   public void initHolder() {

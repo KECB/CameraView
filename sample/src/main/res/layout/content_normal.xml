@@ -6,15 +6,18 @@
     >
   <FrameLayout
     android:id="@+id/camera_preview"
-
     android:layout_width="fill_parent"
-      android:layout_height="fill_parent"
-      android:layout_weight="1"
-      >
+    android:layout_height="match_parent"
+    android:layout_weight="1">
     <!--<co.ilife.camerapreview.CameraPreview-->
         <!--android:layout_width="match_parent"-->
         <!--android:layout_height="match_parent"-->
       <!--/>-->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_height="wrap_content"
+        android:text="test"/>
   </FrameLayout>
 
   <RelativeLayout

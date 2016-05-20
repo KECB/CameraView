@@ -1,6 +1,7 @@
 package co.ilife.sample.camerapreview;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,6 +31,8 @@ public class NormalActivity extends AppCompatActivity {
   private boolean isRecording = false;
   private long mStartTime = 0;
   FrameLayout preview;
+  private Point mWindowSize;
+
 
   //runs without a timer by reposting this handler at the end of the runnable
   Handler timerHandler = new Handler();
@@ -57,6 +60,10 @@ public class NormalActivity extends AppCompatActivity {
     ((AudioManager)getSystemService(Context.AUDIO_SERVICE)).setStreamMute(AudioManager.STREAM_SYSTEM,true);
      //Create our Preview view and set it as the content of our activity.
     mPreview = new CameraPreview(this,null);
+    if (mWindowSize == null)
+      mWindowSize = new Point();
+    getWindowManager().getDefaultDisplay().getSize(mWindowSize);
+    mPreview.setAspectRatio(mWindowSize.x, mWindowSize.y);
     mPreview.setOnTouchListener(new View.OnTouchListener() {
       @Override public boolean onTouch(View v, MotionEvent event) {
         mPreview.autoFocus();

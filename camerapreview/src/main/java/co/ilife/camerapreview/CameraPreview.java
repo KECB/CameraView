@@ -1,7 +1,7 @@
 package co.ilife.camerapreview;
 
+import android.app.Activity;
 import android.content.Context;
-import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
 import android.net.Uri;
@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.FrameLayout;
@@ -36,6 +37,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
   private Camera mCamera;
   private int mCurrentCameraId = 0;
+
+  private Context mContext;
 
   /**
    * Recorder video
@@ -80,6 +83,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   public CameraPreview(Context context, @Nullable AttributeSet attrs) {
     super(context, attrs);
     mCamera = getCameraInstance(mCurrentCameraId);
+
+    mContext = context;
     //initHolder();
     mSupportedSizes = mCamera.getParameters().getSupportedPreviewSizes();
     for (Camera.Size size : mSupportedSizes) {
@@ -152,7 +157,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     // The Surface has been created, now tell the camera where to draw the preview.
     try {
 
-      mCamera.setDisplayOrientation(90);
+      setCameraDisplayOrientation(mCurrentCameraId, mCamera);
       mCamera.setPreviewDisplay(holder);
       mCamera.startPreview();
       mCamera.cancelAutoFocus();
@@ -164,6 +169,29 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     } catch (IOException e) {
       Log.d(TAG, "Error setting camera preview: " + e.getMessage());
     }
+  }
+
+  public void setCameraDisplayOrientation(int cameraId, Camera camera) {
+    android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
+    android.hardware.Camera.getCameraInfo(cameraId, info);
+    Activity activity = (Activity) mContext;
+    int rotation = activity.getWindowManager().getDefaultDisplay()
+        .getRotation();
+    int degrees = 0;
+    switch (rotation) {
+      case Surface.ROTATION_0: degrees = 0; break;
+      case Surface.ROTATION_90: degrees = 90; break;
+      case Surface.ROTATION_180: degrees = 180; break;
+      case Surface.ROTATION_270: degrees = 270; break;
+    }
+    int result;
+    if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+      result = (info.orientation + degrees) % 360;
+      result = (360 - result) % 360;  // compensate the mirror
+    } else {  // back-facing
+      result = (info.orientation - degrees + 360) % 360;
+    }
+    camera.setDisplayOrientation(result);
   }
 
   @Override public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
@@ -188,11 +216,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     // start preview with new settings
     try {
-      if (getResources().getConfiguration().orientation== Configuration.ORIENTATION_PORTRAIT){
-        mCamera.setDisplayOrientation(90);
-      }else {
-        mCamera.setDisplayOrientation(0);
-      }
+      setCameraDisplayOrientation(mCurrentCameraId, mCamera);
       mCamera.setPreviewDisplay(mHolder);
       mCamera.startPreview();
     } catch (Exception e) {

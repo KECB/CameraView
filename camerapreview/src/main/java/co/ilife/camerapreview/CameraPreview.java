@@ -30,21 +30,18 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
    */
   private final String TAG = CameraPreview.class.getSimpleName();
 
+  private Context mContext;
   /**
    * Hold the camera preview
    */
   private SurfaceHolder mHolder;
 
   private Camera mCamera;
-  private int mCurrentCameraId = 0;
-
-  private Context mContext;
-
+  private int mCurrentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
   /**
    * Recorder video
    */
   private MediaRecorder mMediaRecorder;
-
   /**
    * supported preview sizes in current devices camera.
    */
@@ -54,12 +51,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
   private int mRatioWidth = 0;
   private int mRatioHeight = 0;
-
   /**
    * Capture type for storage, current only support video type
    */
+  public static final int MEDIA_TYPE_IMAGE = 1;
   public static final int MEDIA_TYPE_VIDEO = 2;
-
   private String currentRecordVideoFileUrl = "";
 
   //public CameraPreview(Context context) {
@@ -152,25 +148,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     surfaceDestroyed(mHolder);
   }
 
-  @Override public void surfaceCreated(SurfaceHolder holder) {
-    Log.d(TAG, "surfaceCreated: ");
-    // The Surface has been created, now tell the camera where to draw the preview.
-    try {
-
-      setCameraDisplayOrientation(mCurrentCameraId, mCamera);
-      mCamera.setPreviewDisplay(holder);
-      mCamera.startPreview();
-      mCamera.cancelAutoFocus();
-      mCamera.autoFocus(new Camera.AutoFocusCallback() {
-        @Override public void onAutoFocus(boolean success, Camera camera) {
-
-        }
-      });
-    } catch (IOException e) {
-      Log.d(TAG, "Error setting camera preview: " + e.getMessage());
-    }
-  }
-
   public void setCameraDisplayOrientation(int cameraId, Camera camera) {
     android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
     android.hardware.Camera.getCameraInfo(cameraId, info);
@@ -192,43 +169,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
       result = (info.orientation - degrees + 360) % 360;
     }
     camera.setDisplayOrientation(result);
-  }
-
-  @Override public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-    Log.d(TAG, "surfaceChanged: ");
-    // If your preview can change or rotate, take care of those events here.
-    // Make sure to stop the preview before resizing or reformating it.
-
-    if (mHolder.getSurface() == null) {
-      // preview surface does not exist
-      return;
-    }
-
-    // stop preview before making changes
-    try {
-      mCamera.stopPreview();
-    } catch (Exception e) {
-      // ignore: tried to stop a non-existent preview
-    }
-
-    // set preview size and make any resize, rotate or
-    // reformatting changes here
-
-    // start preview with new settings
-    try {
-      setCameraDisplayOrientation(mCurrentCameraId, mCamera);
-      mCamera.setPreviewDisplay(mHolder);
-      mCamera.startPreview();
-    } catch (Exception e) {
-      Log.d(TAG, "Error starting camera preview: " + e.getMessage());
-    }
-  }
-
-  @Override public void surfaceDestroyed(SurfaceHolder holder) {
-    Log.d(TAG, "surfaceDestroyed: ");
-    // empty. Take care of releasing the Camera preview in your activity.
-    mHolder.removeCallback(this);
-
   }
 
   /** A safe way to get an instance of the Camera object. */
@@ -387,5 +327,61 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     initHolder();
     mCamera = getCameraInstance(mCurrentCameraId);
     return mCurrentCameraId;
+  }
+
+  @Override public void surfaceCreated(SurfaceHolder holder) {
+    Log.d(TAG, "surfaceCreated: ");
+  }
+
+  @Override public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    Log.d(TAG, "surfaceChanged: ");
+    // The Surface has been created, now tell the camera where to draw the preview.
+    try {
+      setCameraDisplayOrientation(mCurrentCameraId, mCamera);
+      mCamera.setPreviewDisplay(holder);
+      mCamera.startPreview();
+      mCamera.cancelAutoFocus();
+      mCamera.autoFocus(new Camera.AutoFocusCallback() {
+        @Override public void onAutoFocus(boolean success, Camera camera) {
+
+        }
+      });
+    } catch (IOException e) {
+      Log.d(TAG, "Error setting camera preview: " + e.getMessage());
+    }
+
+    // If your preview can change or rotate, take care of those events here.
+    // Make sure to stop the preview before resizing or reformating it.
+
+    if (mHolder.getSurface() == null) {
+      // preview surface does not exist
+      return;
+    }
+
+    // stop preview before making changes
+    try {
+      mCamera.stopPreview();
+    } catch (Exception e) {
+      // ignore: tried to stop a non-existent preview
+    }
+
+    // set preview size and make any resize, rotate or
+    // reformatting changes here
+
+    // start preview with new settings
+    try {
+      setCameraDisplayOrientation(mCurrentCameraId, mCamera);
+      mCamera.setPreviewDisplay(mHolder);
+      mCamera.startPreview();
+    } catch (Exception e) {
+      Log.d(TAG, "Error starting camera preview: " + e.getMessage());
+    }
+  }
+
+  @Override public void surfaceDestroyed(SurfaceHolder holder) {
+    Log.d(TAG, "surfaceDestroyed: ");
+    // empty. Take care of releasing the Camera preview in your activity.
+    mHolder.removeCallback(this);
+
   }
 }

@@ -62,7 +62,7 @@ public class CountdownActivity extends AppCompatActivity {
     mRecordButton.setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         if (!isRecording){
-          if (mCameraPreview.prepareVideoRecorder(0)) {
+          if (mCameraPreview.prepareVideoRecorder()) {
             mCameraPreview.startRecord();
             mStartTime = System.currentTimeMillis();
             mHandler.postDelayed(run, 0);

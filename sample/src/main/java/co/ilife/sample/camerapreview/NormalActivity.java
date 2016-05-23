@@ -88,7 +88,7 @@ public class NormalActivity extends AppCompatActivity {
           isRecording = false;
         }else {
           // initialize video camera
-          if (mPreview.prepareVideoRecorder(0)) {
+          if (mPreview.prepareVideoRecorder()) {
             // Camera is available and unlocked, MediaRecorder is prepared,
             // now you can start recording
             mPreview.startRecord();
@@ -110,7 +110,10 @@ public class NormalActivity extends AppCompatActivity {
     switchCameraButton.setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         int currentCamera = mPreview.switchCamera();
+        Log.d(TAG, "current camera id:" + currentCamera);
         preview.removeAllViews();
+        mPreview.initHolder();
+        mPreview.prepareVideoRecorder();
         preview.addView(mPreview);
         switchCameraButton.setBackgroundResource(currentCamera==0? R.mipmap.back_camera: R.mipmap.front_camera);
       }
@@ -139,8 +142,7 @@ public class NormalActivity extends AppCompatActivity {
     preview.addView(mPreview);
     Log.d(TAG, "onResume: "+TAG);
     mPreview.initHolder();
-    mPreview.prepareVideoRecorder(0);
-
+    //mPreview.prepareVideoRecorder(0);
   }
 
   @Override protected void onPause() {

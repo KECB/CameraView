@@ -58,30 +58,10 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   public static final int MEDIA_TYPE_VIDEO = 2;
   private String currentRecordVideoFileUrl = "";
 
-  //public CameraPreview(Context context) {
-  //  super(context);
-  //  mCamera = getCameraInstance();
-  //
-  //  // Install a SurfaceHolder.Callback so we get notified when the
-  //  // underlying surface is created and destroyed.
-  //  mHolder = getHolder();
-  //  mHolder.addCallback(this);
-  //
-  //  // deprecated setting, but required on Android versions prior to 3.0
-  //  mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-  //
-  //  mSupportedSizes = mCamera.getParameters().getSupportedPreviewSizes();
-  //  for (Camera.Size size : mSupportedSizes) {
-  //    Log.d(TAG, "size width:" + size.width + "; size height:" + size.height);
-  //  }
-  //}
-
   public CameraPreview(Context context, @Nullable AttributeSet attrs) {
     super(context, attrs);
-    mCamera = getCameraInstance(mCurrentCameraId);
-
     mContext = context;
-    //initHolder();
+    mCamera = getCameraInstance(mCurrentCameraId);
     mSupportedSizes = mCamera.getParameters().getSupportedPreviewSizes();
     for (Camera.Size size : mSupportedSizes) {
       if (640 <= size.width & size.width <= 1280) {
@@ -108,37 +88,12 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     requestLayout();
   }
 
-  @Override
-  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-    // Set
-    FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
-    params.gravity = Gravity.CENTER;
-    setLayoutParams(params);
-    //
-    int width = MeasureSpec.getSize(widthMeasureSpec);
-    int height = MeasureSpec.getSize(heightMeasureSpec);
-    if (0 == mRatioWidth || 0 == mRatioHeight) {
-      setMeasuredDimension(width, height);
-    } else {
-      if (width < height * mRatioWidth / mRatioHeight) {
-        setMeasuredDimension(width, width * mRatioHeight / mRatioWidth);
-      } else {
-        setMeasuredDimension(height * mRatioWidth / mRatioHeight, height);
-      }
-    }
-
-
-  }
-
   public void initHolder() {
-
     // Install a SurfaceHolder.Callback so we get notified when the
     // underlying surface is created and destroyed.
     mHolder = getHolder();
     mHolder.addCallback(this);
     Log.d(TAG, "initHolder: "+ mHolder.getSurface().toString());
-
     // deprecated setting, but required on Android versions prior to 3.0
     mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
   }
@@ -182,10 +137,10 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     return c; // returns null if camera is unavailable
   }
 
-  public boolean prepareVideoRecorder(int camId) {
+  public boolean prepareVideoRecorder() {
 
     if (mCamera == null) {
-      mCamera = getCameraInstance(camId);
+      mCamera = getCameraInstance(mCurrentCameraId);
     }
     mMediaRecorder = new MediaRecorder();
 
@@ -204,7 +159,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     mMediaRecorder.setVideoEncodingBitRate(
         1 * 1024 * 1024); // Set this to make video more clarity
     mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-    mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+    mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB);
 
     // Step 3: Set a CamcorderProfile (requires API Level 8 or higher
     //CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
@@ -322,11 +277,32 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     //mHolder = null;
     mCamera.stopPreview();
     mCamera.release();
-    mCurrentCameraId = mCurrentCameraId == 0 ? 1 : 0;
+    mCurrentCameraId = mCurrentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
     Log.d(TAG, "switchCamera: "+ mCurrentCameraId);
     initHolder();
     mCamera = getCameraInstance(mCurrentCameraId);
     return mCurrentCameraId;
+  }
+
+  @Override
+  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    // Set
+    FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+    params.gravity = Gravity.CENTER;
+    setLayoutParams(params);
+    //
+    int width = MeasureSpec.getSize(widthMeasureSpec);
+    int height = MeasureSpec.getSize(heightMeasureSpec);
+    if (0 == mRatioWidth || 0 == mRatioHeight) {
+      setMeasuredDimension(width, height);
+    } else {
+      if (width < height * mRatioWidth / mRatioHeight) {
+        setMeasuredDimension(width, width * mRatioHeight / mRatioWidth);
+      } else {
+        setMeasuredDimension(height * mRatioWidth / mRatioHeight, height);
+      }
+    }
   }
 
   @Override public void surfaceCreated(SurfaceHolder holder) {
@@ -382,6 +358,5 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     Log.d(TAG, "surfaceDestroyed: ");
     // empty. Take care of releasing the Camera preview in your activity.
     mHolder.removeCallback(this);
-
   }
 }

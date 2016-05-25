@@ -38,7 +38,6 @@ public class WechatActivity extends AppCompatActivity {
       long status = (System.currentTimeMillis() - mStartTime);
       leftProgress.setProgress((int)status);
       rightProgress.setProgress((int)status);
-      Log.d(TAG, "run: "+ status);
       if (status<MAX_PROGRESS){
         mHandler.postDelayed(this, 0);
       }else {
@@ -82,7 +81,9 @@ public class WechatActivity extends AppCompatActivity {
       @Override public boolean onTouch(View v, MotionEvent event) {
         switch (event.getAction()) {
           case MotionEvent.ACTION_DOWN:
+            Y = event.getY();
             if (!isRecordFinished) {
+              event.setLocation(0,0);
               mStartTime = System.currentTimeMillis();
               mHandler.post(run);
             }
@@ -93,10 +94,10 @@ public class WechatActivity extends AppCompatActivity {
             resetProgress();
             break;
           case MotionEvent.ACTION_MOVE:
-            Y = Y==0? event.getRawY(): Y;
-            if (event.getY() - Y < -80) {
-              Log.d(TAG, "onTouch: up");
+            if (event.getY() - Y < -300) {
               Y = 0;
+              mHandler.removeCallbacks(run);
+              isRecordFinished = true;
               resetProgress();
             }
             break;

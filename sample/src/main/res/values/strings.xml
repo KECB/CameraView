@@ -6,4 +6,9 @@
 
   <string name="normal_sample">Normal Sample</string>
   <string name="countdown_sample">Countdown Sample</string>
+  <string name="wechat_sample">wechat</string>
+
+  <string name="title_activity_wechat">WechatActivity</string>
+  <string name="dummy_button">Dummy Button</string>
+  <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>

@@ -1,0 +1,70 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/black_overlay"
+    tools:context="co.ilife.sample.camerapreview.WechatActivity"
+    >
+
+  <LinearLayout
+      android:id="@+id/fullscreen_content_controls"
+      style="?metaButtonBarStyle"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_alignParentBottom="true"
+      android:background="@color/black_overlay"
+      android:orientation="vertical"
+      tools:ignore="UselessParent"
+      >
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+      <com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar
+          android:id="@+id/left_progress"
+          android:layout_width="0dp"
+          android:layout_height="10dp"
+          android:layout_weight="1"
+          app:rcSecondaryProgress="0"
+          app:rcRadius="0dp"
+          app:rcBackgroundPadding="0dp"
+          app:rcReverse="false"
+          app:rcProgressColor="#757575"
+          app:rcSecondaryProgressColor="#258074"
+          app:rcBackgroundColor="#56d2c2" />
+      <com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar
+          android:id="@+id/right_progress"
+          android:layout_width="0dp"
+          android:layout_height="10dp"
+          android:layout_weight="1"
+          app:rcSecondaryProgress="0"
+          app:rcRadius="0dp"
+          app:rcBackgroundPadding="0dp"
+          app:rcReverse="true"
+          app:rcProgressColor="#757575"
+          app:rcSecondaryProgressColor="#258074"
+          app:rcBackgroundColor="#56d2c2" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/record_button"
+        style="?metaButtonBarButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_weight="1"
+        android:scaleType="center"
+        android:src="@mipmap/camera"
+        />
+
+  </LinearLayout>
+
+  <FrameLayout
+      android:id="@+id/camera_preview"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:layout_above="@id/fullscreen_content_controls">
+
+  </FrameLayout>
+
+</RelativeLayout>

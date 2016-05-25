@@ -29,5 +29,14 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
       }
     });
+
+    Button wechatSample = (Button) findViewById(R.id.button_wechat);
+    wechatSample.setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        Intent intent = new Intent();
+        intent.setClass(getBaseContext(), WechatActivity.class);
+        startActivity(intent);
+      }
+    });
   }
 }

@@ -284,6 +284,10 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     return mCurrentCameraId;
   }
 
+  public String getCurrentFileUrl() {
+    return currentRecordVideoFileUrl;
+  }
+
   @Override
   protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     super.onMeasure(widthMeasureSpec, heightMeasureSpec);

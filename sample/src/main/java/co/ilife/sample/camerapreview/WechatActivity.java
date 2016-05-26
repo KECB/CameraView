@@ -1,5 +1,6 @@
 package co.ilife.sample.camerapreview;
 
+import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
@@ -47,6 +48,13 @@ public class WechatActivity extends AppCompatActivity {
         resetProgress();
         isRecordFinished = true;
         mHandler.removeCallbacks(this);
+        String url = mCameraPreview.getCurrentFileUrl();
+        Intent intent = new Intent();
+        intent.putExtra(MainActivity.VIDEO_URL, url);
+        Log.d(TAG, "run: "+ url);
+        setResult(RESULT_OK, intent);
+        mCameraPreview.stopReocrd();
+        finish();
       }
     }
   };
@@ -74,7 +82,6 @@ public class WechatActivity extends AppCompatActivity {
       }
     });
     mCameraContainer = (FrameLayout) findViewById(R.id.camera_preview);
-    mCameraContainer.addView(mCameraPreview);
 
     mRecordButton = (ImageButton) findViewById(R.id.record_button);
     mRecordButton.setOnTouchListener(new View.OnTouchListener() {
@@ -85,11 +92,16 @@ public class WechatActivity extends AppCompatActivity {
             if (!isRecordFinished) {
               event.setLocation(0,0);
               mStartTime = System.currentTimeMillis();
+              mCameraPreview.prepareVideoRecorder();
+              mCameraPreview.startRecord();
               mHandler.post(run);
             }
             break;
           case MotionEvent.ACTION_UP:
             mHandler.removeCallbacks(run);
+            if (!isRecordFinished){
+              mCameraPreview.stopReocrd();
+            }
             isRecordFinished = false;
             resetProgress();
             break;
@@ -98,6 +110,9 @@ public class WechatActivity extends AppCompatActivity {
               Y = 0;
               mHandler.removeCallbacks(run);
               isRecordFinished = true;
+              if (!isRecordFinished){
+                mCameraPreview.stopReocrd();
+              }
               resetProgress();
             }
             break;
@@ -122,7 +137,7 @@ public class WechatActivity extends AppCompatActivity {
 
   @Override public void onPause() {
     super.onPause();
-
+    mCameraPreview.releaseMediaRecorder();
   }
 
   private void hide() {

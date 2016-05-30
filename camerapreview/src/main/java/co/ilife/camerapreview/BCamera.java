@@ -28,6 +28,4 @@ public class BCamera {
   public static final int STATUS_RETRY = 2;
 
 
-
-
 }

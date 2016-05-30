@@ -159,7 +159,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     mMediaRecorder.setVideoEncodingBitRate(
         1 * 1024 * 1024); // Set this to make video more clarity
     mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-    mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB);
+    mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);// for support iOS device to play.
 
     // Step 3: Set a CamcorderProfile (requires API Level 8 or higher
     //CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);

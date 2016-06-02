@@ -7,10 +7,12 @@ import android.os.Handler;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import co.ilife.camerapreview.CameraPreview;
 import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar;
 
@@ -33,6 +35,7 @@ public class WechatActivity extends AppCompatActivity {
   private FrameLayout mCameraContainer;
   private CameraPreview mCameraPreview;
   private Point mWindowSize;
+  private View mProgress;
 
   Handler mHandler = new Handler();
   Runnable run = new Runnable() {
@@ -40,6 +43,7 @@ public class WechatActivity extends AppCompatActivity {
       mDuration = (System.currentTimeMillis() - mStartTime);
       leftProgress.setProgress((int)mDuration);
       rightProgress.setProgress((int)mDuration);
+      resizeProgressView(mDuration);
       if (mDuration<MAX_PROGRESS){
         mHandler.postDelayed(this, 0);
       }else {
@@ -52,6 +56,15 @@ public class WechatActivity extends AppCompatActivity {
       }
     }
   };
+
+  private void resizeProgressView(long duration) {
+    Log.d(TAG, "resizeProgressView: "+(MAX_PROGRESS - duration)*100/MAX_PROGRESS*mWindowSize.x/100);
+    int width = (int) (MAX_PROGRESS - duration)*100/MAX_PROGRESS*mWindowSize.x/100;
+    //Log.d(TAG, "resizeProgressView: " + width);
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, mProgress.getHeight());
+    params.gravity = Gravity.CENTER_HORIZONTAL;
+    mProgress.setLayoutParams(params);
+  }
 
   private void recordFinish() {
     mHandler.removeCallbacks(run);
@@ -75,10 +88,13 @@ public class WechatActivity extends AppCompatActivity {
     setContentView(R.layout.activity_wechat);
     hide();
 
+    mProgress = (View) findViewById(R.id.progress);
+
     if (mWindowSize == null)
       mWindowSize = new Point();
     getWindowManager().getDefaultDisplay().getSize(mWindowSize);
     mCameraPreview = new CameraPreview(this,null);
+
     mCameraPreview.setAspectRatio(mWindowSize.x, mWindowSize.y);
     mCameraPreview.setOnTouchListener(new View.OnTouchListener() {
       @Override public boolean onTouch(View v, MotionEvent event) {

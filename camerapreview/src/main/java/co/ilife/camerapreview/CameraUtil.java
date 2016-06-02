@@ -8,7 +8,13 @@ import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.os.Build;
+import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.util.Log;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -48,6 +54,29 @@ public class CameraUtil {
       e.printStackTrace();
       return false;
     }
+  }
+
+  /** Create a File for saving an video */
+  public static File getOutputMediaFile(Context context, @Nullable String path, String extension){
+    // To be safe, you should check that the SDCard is mounted
+    // using Environment.getExternalStorageState() before doing this.
+    if (Environment.getExternalStorageState() != Environment.MEDIA_MOUNTED) return null;
+    if (path == null) {
+      path = context.getExternalCacheDir().getAbsolutePath();
+    }
+    File mediaStorageDir = new File(path);
+    // Create the storage directory if it does not exist
+    if (! mediaStorageDir.exists()){
+      if (! mediaStorageDir.mkdirs()){
+        Log.d("MyCameraApp", "failed to create directory");
+        return null;
+      }
+    }
+    // Create a media file name
+    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+    File mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+          "VID_"+ timeStamp + extension);
+    return mediaFile;
   }
 
   public static List<Camera.Size> supportPreviewSizes(Camera camera) {

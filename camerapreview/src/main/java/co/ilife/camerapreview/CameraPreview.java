@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
-import android.net.Uri;
-import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -14,10 +12,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.FrameLayout;
-import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -154,23 +149,21 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     mMediaRecorder.setOrientationHint(90); // Make output file orientation portrait
 
     // Step 2: Set sources
-    mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-    mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+    mMediaRecorder.setAudioSource(mBCamera.getAudioSource());
+    mMediaRecorder.setVideoSource(mBCamera.getVideoSource());
 
-    mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+    mMediaRecorder.setOutputFormat(mBCamera.getOutputFormat());
     mMediaRecorder.setVideoSize(supportedWidth,supportedHeight);
-    mMediaRecorder.setVideoFrameRate(30);
-    mMediaRecorder.setVideoEncodingBitRate(
-        1 * 1024 * 1024); // Set this to make video more clarity
-    mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+    mMediaRecorder.setVideoFrameRate(mBCamera.getQualityProfile().videoFrameRate);
+    mMediaRecorder.setVideoEncodingBitRate(mBCamera.getQualityProfile().videoBitRate); // Set this to make video more clarity
+    mMediaRecorder.setVideoEncoder(mBCamera.getQualityProfile().videoCodec);
     mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);// for support iOS device to play.
 
     // Step 3: Set a CamcorderProfile (requires API Level 8 or higher
-    //CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
-    //mMediaRecorder.setProfile(profile);
+    mMediaRecorder.setProfile(mBCamera.getQualityProfile());
 
     // Step 4: Set ouput file
-    currentRecordVideoFileUrl = getOutputMediaFile(MEDIA_TYPE_VIDEO).toString();
+    currentRecordVideoFileUrl = CameraUtil.getOutputMediaFile(mContext,mBCamera.getSavePath(),".mp4").getPath();
     mMediaRecorder.setOutputFile(currentRecordVideoFileUrl);
 
     // Step 5: Set the preview output
@@ -222,46 +215,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
   public void stopReocrd() {
     mMediaRecorder.stop();
-  }
-
-  /** Create a file Uri for saving an image or video */
-  private static Uri getOutputMediaFileUri(int type){
-    return Uri.fromFile(getOutputMediaFile(type));
-  }
-
-  /** Create a File for saving an image or video */
-  private static File getOutputMediaFile(int type){
-    // To be safe, you should check that the SDCard is mounted
-    // using Environment.getExternalStorageState() before doing this.
-
-    File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-        Environment.DIRECTORY_PICTURES), "MyCameraApp");
-    //File mediaStorageDir = new File(Environment.getExternalStorageDirectory()
-    //    + File.separator
-    //    + getContext().getPackageName()
-    //    + File.separator);
-    // This location works best if you want the created images to be shared
-    // between applications and persist after your app has been uninstalled.
-
-    // Create the storage directory if it does not exist
-    if (! mediaStorageDir.exists()){
-      if (! mediaStorageDir.mkdirs()){
-        Log.d("MyCameraApp", "failed to create directory");
-        return null;
-      }
-    }
-
-    // Create a media file name
-    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-    File mediaFile;
-    if(type == MEDIA_TYPE_VIDEO) {
-      mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-          "VID_"+ timeStamp + ".mp4");
-    } else {
-      return null;
-    }
-
-    return mediaFile;
   }
 
   public String getCurrentRecordVideoFileUrl() {

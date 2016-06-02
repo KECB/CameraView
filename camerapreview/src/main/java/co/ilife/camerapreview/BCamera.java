@@ -101,8 +101,8 @@ public class BCamera {
     mVideoEncodingBitRate = videoEncodingBitRate;
   }
 
-  public int getQualityProfile() {
-    return mQualityProfile;
+  public CamcorderProfile getQualityProfile() {
+    return CamcorderProfile.get(mQualityProfile);
   }
 
   public void setQualityProfile(@QualityProfile int qualityProfile) {

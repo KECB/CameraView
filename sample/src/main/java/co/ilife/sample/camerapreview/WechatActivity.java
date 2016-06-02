@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import co.ilife.camerapreview.BCamera;
 import co.ilife.camerapreview.CameraPreview;
 import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar;
 
@@ -23,6 +24,8 @@ import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar;
 public class WechatActivity extends AppCompatActivity {
 
   private final String TAG = WechatActivity.class.getSimpleName();
+
+  private BCamera mBCamera;
 
   private final int MAX_PROGRESS = 8000;
   private final int MINIMUM_PROGRESS = 3000;
@@ -93,7 +96,10 @@ public class WechatActivity extends AppCompatActivity {
     if (mWindowSize == null)
       mWindowSize = new Point();
     getWindowManager().getDefaultDisplay().getSize(mWindowSize);
-    mCameraPreview = new CameraPreview(this,null);
+
+    mBCamera = new BCamera(this);
+    mBCamera.setQualityProfile(BCamera.QUALITY_480P);
+    mCameraPreview = new CameraPreview(this,null,mBCamera);
 
     mCameraPreview.setAspectRatio(mWindowSize.x, mWindowSize.y);
     mCameraPreview.setOnTouchListener(new View.OnTouchListener() {

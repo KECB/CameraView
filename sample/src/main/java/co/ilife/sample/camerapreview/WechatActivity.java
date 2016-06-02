@@ -22,10 +22,11 @@ public class WechatActivity extends AppCompatActivity {
 
   private final String TAG = WechatActivity.class.getSimpleName();
 
-  private final int MAX_PROGRESS = 3000;
+  private final int MAX_PROGRESS = 8000;
+  private final int MINIMUM_PROGRESS = 3000;
   private ImageButton mRecordButton;
   private RoundCornerProgressBar leftProgress, rightProgress;
-  private long mStartTime;
+  private long mStartTime, mDuration;
   private boolean isRecordFinished = false;
   float Y = 0;
 
@@ -36,10 +37,10 @@ public class WechatActivity extends AppCompatActivity {
   Handler mHandler = new Handler();
   Runnable run = new Runnable() {
     @Override public void run() {
-      long status = (System.currentTimeMillis() - mStartTime);
-      leftProgress.setProgress((int)status);
-      rightProgress.setProgress((int)status);
-      if (status<MAX_PROGRESS){
+      mDuration = (System.currentTimeMillis() - mStartTime);
+      leftProgress.setProgress((int)mDuration);
+      rightProgress.setProgress((int)mDuration);
+      if (mDuration<MAX_PROGRESS){
         mHandler.postDelayed(this, 0);
       }else {
         //mCameraPreview.stopReocrd();
@@ -47,17 +48,21 @@ public class WechatActivity extends AppCompatActivity {
         //mCameraPreview.unlockCamera();
         resetProgress();
         isRecordFinished = true;
-        mHandler.removeCallbacks(this);
-        String url = mCameraPreview.getCurrentFileUrl();
-        Intent intent = new Intent();
-        intent.putExtra(MainActivity.VIDEO_URL, url);
-        Log.d(TAG, "run: "+ url);
-        setResult(RESULT_OK, intent);
-        mCameraPreview.stopReocrd();
-        finish();
+        recordFinish();
       }
     }
   };
+
+  private void recordFinish() {
+    mHandler.removeCallbacks(run);
+    String url = mCameraPreview.getCurrentFileUrl();
+    Intent intent = new Intent();
+    intent.putExtra(MainActivity.VIDEO_URL, url);
+    Log.d(TAG, "run: "+ url);
+    setResult(RESULT_OK, intent);
+    mCameraPreview.stopReocrd();
+    finish();
+  }
 
   private void resetProgress() {
     leftProgress.setProgress(0);
@@ -99,6 +104,10 @@ public class WechatActivity extends AppCompatActivity {
             break;
           case MotionEvent.ACTION_UP:
             mHandler.removeCallbacks(run);
+            if (mDuration > MINIMUM_PROGRESS) {
+              recordFinish();
+              break;
+            }
             if (!isRecordFinished){
               mCameraPreview.stopReocrd();
             }

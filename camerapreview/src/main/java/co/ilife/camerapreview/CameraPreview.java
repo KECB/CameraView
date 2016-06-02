@@ -36,6 +36,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
    */
   private SurfaceHolder mHolder;
 
+  private BCamera mBCamera;
   private Camera mCamera;
   private int mCurrentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
   /**
@@ -58,10 +59,12 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   public static final int MEDIA_TYPE_VIDEO = 2;
   private String currentRecordVideoFileUrl = "";
 
-  public CameraPreview(Context context, @Nullable AttributeSet attrs) {
+  public CameraPreview(Context context, @Nullable AttributeSet attrs, BCamera bCamera) {
     super(context, attrs);
     mContext = context;
     mCamera = getCameraInstance(mCurrentCameraId);
+    mBCamera = bCamera;
+
     mSupportedSizes = mCamera.getParameters().getSupportedPreviewSizes();
     for (Camera.Size size : mSupportedSizes) {
       if (640 <= size.width & size.width <= 1280) {

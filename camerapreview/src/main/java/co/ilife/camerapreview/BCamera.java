@@ -57,8 +57,17 @@ public class BCamera {
     return mCamera;
   }
 
-  public void setCamera(Camera camera) {
-    mCamera = camera;
+  public void setCamera(boolean cameraFacingBack) {
+    if (mCamera == null) {
+      mCamera = mCameraFacingBack ? Camera.open() : Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
+      return;
+    }
+    if (mCameraFacingBack != cameraFacingBack) {
+      mCamera.release();
+      setCameraFacingBack(cameraFacingBack);
+      mCamera = mCameraFacingBack ? Camera.open() : Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
+    }
+
   }
 
   public String getSavePath() {

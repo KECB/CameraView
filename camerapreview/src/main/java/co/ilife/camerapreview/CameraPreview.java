@@ -57,18 +57,16 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   public CameraPreview(Context context, @Nullable AttributeSet attrs, BCamera bCamera) {
     super(context, attrs);
     mContext = context;
-    mCamera = getCameraInstance(mCurrentCameraId);
     mBCamera = bCamera;
 
-    mSupportedSizes = mCamera.getParameters().getSupportedPreviewSizes();
+    mSupportedSizes = CameraUtil.supportPreviewSizes(mBCamera.getCamera());
     for (Camera.Size size : mSupportedSizes) {
       if (640 <= size.width & size.width <= 1280) {
         supportedWidth = size.width;
         supportedHeight = size.height;
         //parameters.setPreviewSize(size.width, size.height);
         //parameters.setPictureSize(size.width, size.height);
-        //break;
-
+        break;
       }
       Log.d(TAG, "size width:" + size.width + "; size height:" + size.height);
     }
@@ -125,27 +123,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     camera.setDisplayOrientation(result);
   }
 
-  /** A safe way to get an instance of the Camera object. */
-  public static Camera getCameraInstance( int camId) {
-    Camera c = null;
-    try {
-      c = Camera.open(camId); // attempt to get a Camera instance
-    } catch (Exception e) {
-      // Camera is not available (in use or does not exist)
-    }
-    return c; // returns null if camera is unavailable
-  }
-
   public boolean prepareVideoRecorder() {
 
-    if (mCamera == null) {
-      mCamera = getCameraInstance(mCurrentCameraId);
-    }
     mMediaRecorder = new MediaRecorder();
 
     // Step 1: Unlock and set camera to MediaRecorder
-    mCamera.unlock();
-    mMediaRecorder.setCamera(mCamera);
+    mBCamera.getCamera().unlock();
+    mMediaRecorder.setCamera(mBCamera.getCamera());
     mMediaRecorder.setOrientationHint(90); // Make output file orientation portrait
 
     // Step 2: Set sources
@@ -237,7 +221,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     mCurrentCameraId = mCurrentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
     Log.d(TAG, "switchCamera: "+ mCurrentCameraId);
     initHolder();
-    mCamera = getCameraInstance(mCurrentCameraId);
+    mBCamera.setCamera(mCurrentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK);
+    mCamera = mBCamera.getCamera();
     return mCurrentCameraId;
   }
 

@@ -32,7 +32,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   private SurfaceHolder mHolder;
 
   private BCamera mBCamera;
-  private Camera mCamera;
   private int mCurrentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
   /**
    * Recorder video
@@ -136,7 +135,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     mMediaRecorder.setAudioSource(mBCamera.getAudioSource());
     mMediaRecorder.setVideoSource(mBCamera.getVideoSource());
 
-    mMediaRecorder.setOutputFormat(mBCamera.getOutputFormat());
+    //mMediaRecorder.setOutputFormat(mBCamera.getOutputFormat());
     mMediaRecorder.setVideoSize(supportedWidth,supportedHeight);
     mMediaRecorder.setVideoFrameRate(mBCamera.getQualityProfile().videoFrameRate);
     mMediaRecorder.setVideoEncodingBitRate(mBCamera.getQualityProfile().videoBitRate); // Set this to make video more clarity
@@ -148,6 +147,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     // Step 4: Set ouput file
     currentRecordVideoFileUrl = CameraUtil.getOutputMediaFile(mContext,mBCamera.getSavePath(),".mp4").getPath();
+    Log.d(TAG, "prepareVideoRecorder: "+currentRecordVideoFileUrl);
     mMediaRecorder.setOutputFile(currentRecordVideoFileUrl);
 
     // Step 5: Set the preview output
@@ -173,24 +173,23 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
       mMediaRecorder.reset();   // clear recorder configuration
       mMediaRecorder.release(); // release the recorder object
       mMediaRecorder = null;
-      mCamera.lock();           // lock camera for later use
+      mBCamera.getCamera().lock();           // lock camera for later use
     }
   }
 
   public void releaseCamera() {
-    if (mCamera != null) {
-      mCamera.stopPreview();
-      mCamera.release();        // release the camera for other applications
-      mCamera = null;
+    if (mBCamera.getCamera() != null) {
+      mBCamera.getCamera().stopPreview();
+      mBCamera.getCamera().release();        // release the camera for other applications
     }
   }
 
   public void lockCamera() {
-    mCamera.lock();
+    mBCamera.getCamera().lock();
   }
 
   public void unlockCamera() {
-    mCamera.unlock();
+    mBCamera.getCamera().unlock();
   }
 
   public void startRecord() {
@@ -206,8 +205,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   }
 
   public void autoFocus(){
-    //mCamera.cancelAutoFocus();
-    mCamera.autoFocus(new Camera.AutoFocusCallback() {
+    //mBCamera.getCamera().cancelAutoFocus();
+    mBCamera.getCamera().autoFocus(new Camera.AutoFocusCallback() {
       @Override public void onAutoFocus(boolean success, Camera camera) {
         if (!success) Log.d(TAG, "onAutoFocus: Failed");
       }
@@ -216,13 +215,12 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
   public int switchCamera(){
     //mHolder = null;
-    mCamera.stopPreview();
-    mCamera.release();
+    mBCamera.getCamera().stopPreview();
+    mBCamera.getCamera().release();
     mCurrentCameraId = mCurrentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
     Log.d(TAG, "switchCamera: "+ mCurrentCameraId);
     initHolder();
     mBCamera.setCamera(mCurrentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK);
-    mCamera = mBCamera.getCamera();
     return mCurrentCameraId;
   }
 
@@ -259,11 +257,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     Log.d(TAG, "surfaceChanged: ");
     // The Surface has been created, now tell the camera where to draw the preview.
     try {
-      setCameraDisplayOrientation(mCurrentCameraId, mCamera);
-      mCamera.setPreviewDisplay(holder);
-      mCamera.startPreview();
-      mCamera.cancelAutoFocus();
-      mCamera.autoFocus(new Camera.AutoFocusCallback() {
+      setCameraDisplayOrientation(mCurrentCameraId, mBCamera.getCamera());
+      mBCamera.getCamera().setPreviewDisplay(holder);
+      mBCamera.getCamera().startPreview();
+      mBCamera.getCamera().cancelAutoFocus();
+      mBCamera.getCamera().autoFocus(new Camera.AutoFocusCallback() {
         @Override public void onAutoFocus(boolean success, Camera camera) {
 
         }
@@ -282,7 +280,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     // stop preview before making changes
     try {
-      mCamera.stopPreview();
+      mBCamera.getCamera().stopPreview();
     } catch (Exception e) {
       // ignore: tried to stop a non-existent preview
     }
@@ -292,9 +290,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     // start preview with new settings
     try {
-      setCameraDisplayOrientation(mCurrentCameraId, mCamera);
-      mCamera.setPreviewDisplay(mHolder);
-      mCamera.startPreview();
+      setCameraDisplayOrientation(mCurrentCameraId, mBCamera.getCamera());
+      mBCamera.getCamera().setPreviewDisplay(mHolder);
+      mBCamera.getCamera().startPreview();
     } catch (Exception e) {
       Log.d(TAG, "Error starting camera preview: " + e.getMessage());
     }

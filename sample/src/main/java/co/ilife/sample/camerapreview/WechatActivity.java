@@ -98,7 +98,9 @@ public class WechatActivity extends AppCompatActivity {
     getWindowManager().getDefaultDisplay().getSize(mWindowSize);
 
     mBCamera = new BCamera(this);
+    mBCamera.setCamera(true);
     mBCamera.setQualityProfile(BCamera.QUALITY_480P);
+
     mCameraPreview = new CameraPreview(this,null,mBCamera);
 
     mCameraPreview.setAspectRatio(mWindowSize.x, mWindowSize.y);

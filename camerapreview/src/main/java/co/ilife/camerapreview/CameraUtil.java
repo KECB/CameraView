@@ -60,8 +60,8 @@ public class CameraUtil {
   public static File getOutputMediaFile(Context context, @Nullable String path, String extension){
     // To be safe, you should check that the SDCard is mounted
     // using Environment.getExternalStorageState() before doing this.
-    if (Environment.getExternalStorageState() != Environment.MEDIA_MOUNTED) return null;
-    if (path == null) {
+    if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) return null;
+    if (path == null || path.isEmpty()) {
       path = context.getExternalCacheDir().getAbsolutePath();
     }
     File mediaStorageDir = new File(path);

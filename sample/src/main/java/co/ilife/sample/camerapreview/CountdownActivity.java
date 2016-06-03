@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import co.ilife.camerapreview.BCamera;
 import co.ilife.camerapreview.CameraPreview;
 import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar;
 
@@ -48,7 +49,9 @@ public class CountdownActivity extends AppCompatActivity {
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
 
-    mCameraPreview = new CameraPreview(this, null);
+    BCamera bCamera = new BCamera(this);
+    bCamera.setQualityProfile(BCamera.QUALITY_480P);
+    mCameraPreview = new CameraPreview(this, null, bCamera);
     mCameraPreview.setOnTouchListener(new View.OnTouchListener() {
       @Override public boolean onTouch(View v, MotionEvent event) {
         mCameraPreview.autoFocus();

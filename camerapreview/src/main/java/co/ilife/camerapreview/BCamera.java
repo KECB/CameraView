@@ -6,6 +6,7 @@ import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -57,7 +58,8 @@ public class BCamera {
     return mCamera;
   }
 
-  public void setCamera(boolean cameraFacingBack) {
+  public void setCamera(@Nullable boolean cameraFacingBack) {
+    // TODO: 6/3/16 判断Camera是否被锁
     if (mCamera == null) {
       mCamera = mCameraFacingBack ? Camera.open() : Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
       return;

@@ -89,6 +89,7 @@ public class WechatActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
 
     setContentView(R.layout.activity_wechat);
+    Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
     hide();
 
     mProgress = (View) findViewById(R.id.progress);

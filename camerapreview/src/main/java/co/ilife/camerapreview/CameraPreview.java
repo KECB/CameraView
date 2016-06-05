@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Created by KECB on 12/30/15.
  */
-public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
+public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, RecordFlow {
 
   /**
    * For log
@@ -134,9 +134,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     // Step 2: Set sources
     mMediaRecorder.setAudioSource(mBCamera.getAudioSource());
     mMediaRecorder.setVideoSource(mBCamera.getVideoSource());
+    mMediaRecorder.setOutputFormat(mBCamera.getQualityProfile().fileFormat);
 
-    //mMediaRecorder.setOutputFormat(mBCamera.getOutputFormat());
-    mMediaRecorder.setVideoSize(supportedWidth,supportedHeight);
+    //mMediaRecorder.setVideoSize(supportedWidth,supportedHeight);
     mMediaRecorder.setVideoFrameRate(mBCamera.getQualityProfile().videoFrameRate);
     mMediaRecorder.setVideoEncodingBitRate(mBCamera.getQualityProfile().videoBitRate); // Set this to make video more clarity
     mMediaRecorder.setVideoEncoder(mBCamera.getQualityProfile().videoCodec);
@@ -302,5 +302,46 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     Log.d(TAG, "surfaceDestroyed: ");
     // empty. Take care of releasing the Camera preview in your activity.
     mHolder.removeCallback(this);
+  }
+
+  @Override public void initial() {
+    mMediaRecorder.reset();
+    mMediaRecorder.setAudioSource(mBCamera.getAudioSource());
+    mMediaRecorder.setVideoSource(mBCamera.getVideoSource());
+  }
+
+  @Override public void dataSourceConfigure() {
+    mMediaRecorder.setOutputFormat(mBCamera.getOutputFormat());
+  }
+
+  @Override public void dataSourceConfigured() {
+    mMediaRecorder.setAudioEncoder(mBCamera.getAudioEncoder());
+    mMediaRecorder.setVideoEncoder(mBCamera.getVideoEncoder());
+    currentRecordVideoFileUrl = CameraUtil.getOutputMediaFile(mContext,mBCamera.getSavePath(),".mp4").getPath();
+    mMediaRecorder.setOutputFile(currentRecordVideoFileUrl);
+    mMediaRecorder.setVideoSize(supportedWidth, supportedHeight);
+    mMediaRecorder.setVideoFrameRate(mBCamera.getVideoFrameRate());
+    mMediaRecorder.setPreviewDisplay(getHolder().getSurface());
+  }
+
+  @Override public void prepare() {
+    try {
+      mMediaRecorder.prepare();
+    } catch (IOException e) {
+      error();
+      e.printStackTrace();
+    }
+  }
+
+  @Override public void recording() {
+    mMediaRecorder.start();
+  }
+
+  @Override public void release() {
+    mMediaRecorder.release();
+  }
+
+  @Override public void error() {
+    mMediaRecorder.reset();
   }
 }

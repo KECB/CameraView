@@ -24,6 +24,11 @@ public class MainActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
+    if (getIntent().hasExtra("error")) {
+      TextView error = (TextView) findViewById(R.id.tv_error);
+      error.setText(getIntent().getStringExtra("error"));
+    }
+
     Button normalSample = (Button) findViewById(R.id.button_normal);
     normalSample.setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {

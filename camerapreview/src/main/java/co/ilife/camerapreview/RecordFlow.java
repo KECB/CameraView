@@ -6,7 +6,7 @@ import java.io.FileDescriptor;
 
 /**
  * Based on https://developer.android.com/reference/android/media/MediaRecorder.html
- * Create a record flow, initial -> initialized -> dataSourceConfigure -> dataSourceConfigured -> prepare -> prepared -> start -> recording -> stop/reset
+ * Create a record flow, initial -> initialized -> setOutputFormat -> dataSourceConfigure -> prepare -> prepared -> start -> recording -> stop/reset
  * Created by KECB on 6/3/16.
  */
 

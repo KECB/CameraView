@@ -13,19 +13,20 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import co.ilife.camerapreview.BCamera;
+import co.ilife.camerapreview.BCameraParams;
 import co.ilife.camerapreview.CameraPreview;
+import co.ilife.camerapreview.RecorderStateListener;
 import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class WechatActivity extends AppCompatActivity {
+public class WechatActivity extends AppCompatActivity implements RecorderStateListener{
 
   private final String TAG = WechatActivity.class.getSimpleName();
 
-  private BCamera mBCamera;
+  private BCameraParams mBCameraParams;
 
   private final int MAX_PROGRESS = 8000;
   private final int MINIMUM_PROGRESS = 3000;
@@ -61,7 +62,7 @@ public class WechatActivity extends AppCompatActivity {
   };
 
   private void resizeProgressView(long duration) {
-    Log.d(TAG, "resizeProgressView: "+(MAX_PROGRESS - duration)*100/MAX_PROGRESS*mWindowSize.x/100);
+    //Log.d(TAG, "resizeProgressView: "+(MAX_PROGRESS - duration)*100/MAX_PROGRESS*mWindowSize.x/100);
     int width = (int) (MAX_PROGRESS - duration)*100/MAX_PROGRESS*mWindowSize.x/100;
     //Log.d(TAG, "resizeProgressView: " + width);
     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, mProgress.getHeight());
@@ -76,7 +77,7 @@ public class WechatActivity extends AppCompatActivity {
     intent.putExtra(MainActivity.VIDEO_URL, url);
     Log.d(TAG, "run: "+ url);
     setResult(RESULT_OK, intent);
-    mCameraPreview.stopReocrd();
+    mCameraPreview.stopRecording();
     finish();
   }
 
@@ -98,11 +99,10 @@ public class WechatActivity extends AppCompatActivity {
       mWindowSize = new Point();
     getWindowManager().getDefaultDisplay().getSize(mWindowSize);
 
-    mBCamera = new BCamera(this);
-    mBCamera.setCamera(true);
-    mBCamera.setQualityProfile(BCamera.QUALITY_480P);
+    mBCameraParams = new BCameraParams();
+    mBCameraParams.setQualityProfile(BCameraParams.QUALITY_480P);
 
-    mCameraPreview = new CameraPreview(this,null,mBCamera);
+    mCameraPreview = new CameraPreview(this, null, mBCameraParams, this);
 
     mCameraPreview.setAspectRatio(mWindowSize.x, mWindowSize.y);
     mCameraPreview.setOnTouchListener(new View.OnTouchListener() {
@@ -122,8 +122,8 @@ public class WechatActivity extends AppCompatActivity {
             if (!isRecordFinished) {
               event.setLocation(0,0);
               mStartTime = System.currentTimeMillis();
-              mCameraPreview.prepareVideoRecorder();
-              mCameraPreview.startRecord();
+              mCameraPreview.initial();
+              mCameraPreview.startRecording();
               mHandler.post(run);
             }
             break;
@@ -182,4 +182,71 @@ public class WechatActivity extends AppCompatActivity {
     }
   }
 
+  @Override public void onCameraPrepared() {
+
+  }
+
+  @Override public void onRecorderPrepared() {
+
+  }
+
+  @Override public void onRecorderStateChanged(int code) {
+    switch (code) {
+      case CODE_OF_STATE_INITIALIZED:
+        Log.d(TAG, "onRecorderStateChanged: initialized");
+        mCameraPreview.setOutputFormat();
+        break;
+      case CODE_OF_STATE_OUTPUT_SET:
+        Log.d(TAG, "onRecorderStateChanged: output set");
+        mCameraPreview.dataSourceConfigure();
+        break;
+      case CODE_OF_STATE_DATASOURCE_CONFIGURED:
+        Log.d(TAG, "onRecorderStateChanged: configured");
+        mCameraPreview.prepare();
+        break;
+      case CODE_OF_STATE_PREPARED:
+        Log.d(TAG, "onRecorderStateChanged: prepared");
+
+        break;
+      case CODE_OF_STATE_RECORDING:
+        Log.d(TAG, "onRecorderStateChanged: recording");
+
+        break;
+      case CODE_OF_STATE_STOP:
+        Log.d(TAG, "onRecorderStateChanged: stop");
+        break;
+      case CODE_OF_STATE_RELEASED:
+        Log.d(TAG, "onRecorderStateChanged: released");
+        break;
+      case CODE_OF_STATE_RESETED:
+        Log.d(TAG, "onRecorderStateChanged: reseted");
+        break;
+
+    }
+  }
+
+  @Override public void onError(int code) {
+    Log.d(TAG, "onError code: "+code);
+    switch (code) {
+      case ERROR_CODE_OF_OPEN_CAMERA_FAILED:
+        Log.d(TAG, "onError: open camera failed");
+        break;
+      case ERROR_CODE_OF_OPEN_MIC_FAILED:
+        Log.d(TAG, "onError: open mic failed");
+        break;
+      case ERROR_CODE_OF_SET_AUDIO_VIDEO_SOURCE_AFTER_SET_OUTPUT:
+        Log.d(TAG, "onError: set audio video source after set ouput");
+        break;
+      case ERROR_CODE_CONFIG_DATASOURCE_AFTER_PREPARED_BEFORE_OUTPUT:
+        Log.d(TAG, "onError: config datasource after prepared before output");
+        break;
+      case ERROR_CODE_OF_PREPARE_RECORD_FAILED:
+        Log.d(TAG, "onError: prepared record failed");
+        break;
+      case ERROR_CODE_OF_START_BEFORE_PREPARE:
+        Log.d(TAG, "onError: start before prepare");
+        break;
+    }
+
+  }
 }

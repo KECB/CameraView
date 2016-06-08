@@ -1,12 +1,8 @@
 package co.ilife.camerapreview;
 
-import android.app.Activity;
-import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.support.annotation.IntDef;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -14,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
  * Media recorder settings
  * Created by KECB on 5/16/16.
  */
-public class BCamera {
+public class BCameraParams {
 
   @IntDef({QUALITY_HIGH, QUALITY_LOW, QUALITY_480P, QUALITY_720P, QUALITY_1080P, QUALITY_TIME_LAPSE_HIGH, QUALITY_TIME_LAPSE_LOW})
   @Retention(RetentionPolicy.SOURCE)
@@ -31,8 +27,6 @@ public class BCamera {
 
   public static final int STATUS_RECORDED = 1;
 
-  private Activity mContext;
-  private Camera mCamera;
 
   private String mSavePath;
   private boolean mCameraFacingBack = true;
@@ -50,27 +44,26 @@ public class BCamera {
   private int mVideoEncoder = MediaRecorder.VideoEncoder.H264;
   private int mAudioEncoder = MediaRecorder.AudioEncoder.AAC;// for support iOS device to play.
 
-  public BCamera(@NonNull Activity context) {
-    this.mContext = context;
+  public BCameraParams() {
   }
 
-  public Camera getCamera() {
-    return mCamera;
-  }
-
-  public void setCamera(@Nullable boolean cameraFacingBack) {
-    // TODO: 6/3/16 判断Camera是否被锁
-    if (mCamera == null) {
-      mCamera = mCameraFacingBack ? Camera.open() : Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
-      return;
-    }
-    if (mCameraFacingBack != cameraFacingBack) {
-      mCamera.release();
-      setCameraFacingBack(cameraFacingBack);
-      mCamera = mCameraFacingBack ? Camera.open() : Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
-    }
-
-  }
+  //public Camera getCamera() {
+  //  return mCamera;
+  //}
+  //
+  //public void setCamera(@Nullable boolean cameraFacingBack) {
+  //  // TODO: 6/3/16 判断Camera是否被锁
+  //  if (mCamera == null) {
+  //    mCamera = mCameraFacingBack ? Camera.open() : Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
+  //    return;
+  //  }
+  //  if (mCameraFacingBack != cameraFacingBack) {
+  //    mCamera.release();
+  //    setCameraFacingBack(cameraFacingBack);
+  //    mCamera = mCameraFacingBack ? Camera.open() : Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
+  //  }
+  //
+  //}
 
   public String getSavePath() {
     return mSavePath;

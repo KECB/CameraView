@@ -12,13 +12,14 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.FrameLayout;
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.List;
 
 /**
  * Created by KECB on 12/30/15.
  */
-public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, RecordFlow {
+public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 
   /**
    * For log
@@ -26,12 +27,15 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   private final String TAG = CameraPreview.class.getSimpleName();
 
   private Context mContext;
+
+  private RecorderStateListener mRecorderStateListener;
   /**
    * Hold the camera preview
    */
   private SurfaceHolder mHolder;
+  private Camera mCamera;
 
-  private BCamera mBCamera;
+  private BCameraParams mBCameraParams;
   private int mCurrentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
   /**
    * Recorder video
@@ -46,19 +50,19 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
   private int mRatioWidth = 0;
   private int mRatioHeight = 0;
-  /**
-   * Capture type for storage, current only support video type
-   */
-  public static final int MEDIA_TYPE_IMAGE = 1;
-  public static final int MEDIA_TYPE_VIDEO = 2;
+
   private String currentRecordVideoFileUrl = "";
 
-  public CameraPreview(Context context, @Nullable AttributeSet attrs, BCamera bCamera) {
+  public CameraPreview(Context context, @Nullable AttributeSet attrs, BCameraParams bCameraParams,
+      @Nullable RecorderStateListener recorderStateListener) {
+
     super(context, attrs);
     mContext = context;
-    mBCamera = bCamera;
+    mBCameraParams = bCameraParams;
+    mRecorderStateListener = recorderStateListener;
 
-    mSupportedSizes = CameraUtil.supportPreviewSizes(mBCamera.getCamera());
+    setCamera(mBCameraParams.isCameraFacingBack());
+    mSupportedSizes = CameraUtil.supportPreviewSizes(mCamera);
     for (Camera.Size size : mSupportedSizes) {
       if (640 <= size.width & size.width <= 1280) {
         supportedWidth = size.width;
@@ -120,6 +124,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
       result = (info.orientation - degrees + 360) % 360;
     }
     camera.setDisplayOrientation(result);
+    Log.d(TAG, "setCameraDisplayOrientation: "+result);
   }
 
   public boolean prepareVideoRecorder() {
@@ -127,26 +132,26 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     mMediaRecorder = new MediaRecorder();
 
     // Step 1: Unlock and set camera to MediaRecorder
-    mBCamera.getCamera().unlock();
-    mMediaRecorder.setCamera(mBCamera.getCamera());
+    mCamera.unlock();
+    mMediaRecorder.setCamera(mCamera);
     mMediaRecorder.setOrientationHint(90); // Make output file orientation portrait
 
     // Step 2: Set sources
-    mMediaRecorder.setAudioSource(mBCamera.getAudioSource());
-    mMediaRecorder.setVideoSource(mBCamera.getVideoSource());
-    mMediaRecorder.setOutputFormat(mBCamera.getQualityProfile().fileFormat);
+    mMediaRecorder.setAudioSource(mBCameraParams.getAudioSource());
+    mMediaRecorder.setVideoSource(mBCameraParams.getVideoSource());
+    mMediaRecorder.setOutputFormat(mBCameraParams.getQualityProfile().fileFormat);
 
     //mMediaRecorder.setVideoSize(supportedWidth,supportedHeight);
-    mMediaRecorder.setVideoFrameRate(mBCamera.getQualityProfile().videoFrameRate);
-    mMediaRecorder.setVideoEncodingBitRate(mBCamera.getQualityProfile().videoBitRate); // Set this to make video more clarity
-    mMediaRecorder.setVideoEncoder(mBCamera.getQualityProfile().videoCodec);
+    mMediaRecorder.setVideoFrameRate(mBCameraParams.getQualityProfile().videoFrameRate);
+    mMediaRecorder.setVideoEncodingBitRate(mBCameraParams.getQualityProfile().videoBitRate); // Set this to make video more clarity
+    mMediaRecorder.setVideoEncoder(mBCameraParams.getQualityProfile().videoCodec);
     mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);// for support iOS device to play.
 
     // Step 3: Set a CamcorderProfile (requires API Level 8 or higher
-    mMediaRecorder.setProfile(mBCamera.getQualityProfile());
+    mMediaRecorder.setProfile(mBCameraParams.getQualityProfile());
 
     // Step 4: Set ouput file
-    currentRecordVideoFileUrl = CameraUtil.getOutputMediaFile(mContext,mBCamera.getSavePath(),".mp4").getPath();
+    currentRecordVideoFileUrl = CameraUtil.getOutputMediaFile(mContext, mBCameraParams.getSavePath(),".mp4").getPath();
     Log.d(TAG, "prepareVideoRecorder: "+currentRecordVideoFileUrl);
     mMediaRecorder.setOutputFile(currentRecordVideoFileUrl);
 
@@ -173,23 +178,23 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
       mMediaRecorder.reset();   // clear recorder configuration
       mMediaRecorder.release(); // release the recorder object
       mMediaRecorder = null;
-      mBCamera.getCamera().lock();           // lock camera for later use
+      mCamera.lock();           // lock camera for later use
     }
   }
 
   public void releaseCamera() {
-    if (mBCamera.getCamera() != null) {
-      mBCamera.getCamera().stopPreview();
-      mBCamera.getCamera().release();        // release the camera for other applications
+    if (mCamera != null) {
+      mCamera.stopPreview();
+      mCamera.release();        // release the camera for other applications
     }
   }
 
   public void lockCamera() {
-    mBCamera.getCamera().lock();
+    mCamera.lock();
   }
 
   public void unlockCamera() {
-    mBCamera.getCamera().unlock();
+    mCamera.unlock();
   }
 
   public void startRecord() {
@@ -205,8 +210,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   }
 
   public void autoFocus(){
-    //mBCamera.getCamera().cancelAutoFocus();
-    mBCamera.getCamera().autoFocus(new Camera.AutoFocusCallback() {
+    //mCamera.cancelAutoFocus();
+    mCamera.autoFocus(new Camera.AutoFocusCallback() {
       @Override public void onAutoFocus(boolean success, Camera camera) {
         if (!success) Log.d(TAG, "onAutoFocus: Failed");
       }
@@ -215,12 +220,12 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
   public int switchCamera(){
     //mHolder = null;
-    mBCamera.getCamera().stopPreview();
-    mBCamera.getCamera().release();
+    mCamera.stopPreview();
+    mCamera.release();
     mCurrentCameraId = mCurrentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
     Log.d(TAG, "switchCamera: "+ mCurrentCameraId);
     initHolder();
-    mBCamera.setCamera(mCurrentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK);
+    setCamera(!mBCameraParams.isCameraFacingBack());
     return mCurrentCameraId;
   }
 
@@ -251,17 +256,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
   @Override public void surfaceCreated(SurfaceHolder holder) {
     Log.d(TAG, "surfaceCreated: ");
-  }
-
-  @Override public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-    Log.d(TAG, "surfaceChanged: ");
     // The Surface has been created, now tell the camera where to draw the preview.
     try {
-      setCameraDisplayOrientation(mCurrentCameraId, mBCamera.getCamera());
-      mBCamera.getCamera().setPreviewDisplay(holder);
-      mBCamera.getCamera().startPreview();
-      mBCamera.getCamera().cancelAutoFocus();
-      mBCamera.getCamera().autoFocus(new Camera.AutoFocusCallback() {
+      setCameraDisplayOrientation(mCurrentCameraId, mCamera);
+      mCamera.setPreviewDisplay(holder);
+      mCamera.startPreview();
+      mCamera.cancelAutoFocus();
+      mCamera.autoFocus(new Camera.AutoFocusCallback() {
         @Override public void onAutoFocus(boolean success, Camera camera) {
 
         }
@@ -269,6 +270,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     } catch (IOException e) {
       Log.d(TAG, "Error setting camera preview: " + e.getMessage());
     }
+
+  }
+
+  @Override public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    Log.d(TAG, "surfaceChanged: ");
 
     // If your preview can change or rotate, take care of those events here.
     // Make sure to stop the preview before resizing or reformating it.
@@ -280,7 +286,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     // stop preview before making changes
     try {
-      mBCamera.getCamera().stopPreview();
+      mCamera.stopPreview();
     } catch (Exception e) {
       // ignore: tried to stop a non-existent preview
     }
@@ -290,12 +296,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     // start preview with new settings
     try {
-      setCameraDisplayOrientation(mCurrentCameraId, mBCamera.getCamera());
-      mBCamera.getCamera().setPreviewDisplay(mHolder);
-      mBCamera.getCamera().startPreview();
+      setCameraDisplayOrientation(mCurrentCameraId, mCamera);
+      mCamera.setPreviewDisplay(holder);
+      mCamera.startPreview();
     } catch (Exception e) {
       Log.d(TAG, "Error starting camera preview: " + e.getMessage());
     }
+
   }
 
   @Override public void surfaceDestroyed(SurfaceHolder holder) {
@@ -304,44 +311,147 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     mHolder.removeCallback(this);
   }
 
-  @Override public void initial() {
-    mMediaRecorder.reset();
-    mMediaRecorder.setAudioSource(mBCamera.getAudioSource());
-    mMediaRecorder.setVideoSource(mBCamera.getVideoSource());
-  }
-
-  @Override public void dataSourceConfigure() {
-    mMediaRecorder.setOutputFormat(mBCamera.getOutputFormat());
-  }
-
-  @Override public void dataSourceConfigured() {
-    mMediaRecorder.setAudioEncoder(mBCamera.getAudioEncoder());
-    mMediaRecorder.setVideoEncoder(mBCamera.getVideoEncoder());
-    currentRecordVideoFileUrl = CameraUtil.getOutputMediaFile(mContext,mBCamera.getSavePath(),".mp4").getPath();
-    mMediaRecorder.setOutputFile(currentRecordVideoFileUrl);
-    mMediaRecorder.setVideoSize(supportedWidth, supportedHeight);
-    mMediaRecorder.setVideoFrameRate(mBCamera.getVideoFrameRate());
-    mMediaRecorder.setPreviewDisplay(getHolder().getSurface());
-  }
-
-  @Override public void prepare() {
-    try {
-      mMediaRecorder.prepare();
-    } catch (IOException e) {
-      error();
-      e.printStackTrace();
+  private void setCamera(boolean cameraFacingBack) {
+    //TODO: 6/3/16 判断Camera是否被锁
+    if (mCamera == null) {
+      mCamera = mBCameraParams.isCameraFacingBack() ? Camera.open() : Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
+      return;
+    }
+    if (mBCameraParams.isCameraFacingBack() != cameraFacingBack) {
+      mCamera.release();
+      mBCameraParams.setCameraFacingBack(cameraFacingBack);
+      mCamera = mBCameraParams.isCameraFacingBack() ? Camera.open() : Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
     }
   }
 
-  @Override public void recording() {
-    mMediaRecorder.start();
-  }
-
-  @Override public void release() {
-    mMediaRecorder.release();
-  }
-
-  @Override public void error() {
+  /**
+   * Set
+   * {@link MediaRecorder#setAudioSource(int)}
+   * {@link MediaRecorder#setVideoSource(int)}
+   */
+  public void initial() {
+    if (mMediaRecorder == null) {
+      mMediaRecorder = new MediaRecorder();
+    }
     mMediaRecorder.reset();
+    try {
+      mMediaRecorder.setAudioSource(mBCameraParams.getAudioSource());
+      mMediaRecorder.setVideoSource(mBCameraParams.getVideoSource());
+      mRecorderStateListener.onRecorderStateChanged(RecorderStateListener.CODE_OF_STATE_INITIALIZED);
+    } catch (IllegalStateException e) {
+      mRecorderStateListener.onError(
+          RecorderStateListener.ERROR_CODE_OF_SET_AUDIO_VIDEO_SOURCE_AFTER_SET_OUTPUT);
+    }
+  }
+
+  /**
+   * Set
+   * {@link MediaRecorder#setOutputFormat(int)}, but this only can set once or it will cause illegal exception.
+   */
+  public void setOutputFormat() {
+    try {
+      mMediaRecorder.setOutputFormat(mBCameraParams.getOutputFormat());
+      mRecorderStateListener.onRecorderStateChanged(RecorderStateListener.CODE_OF_STATE_OUTPUT_SET);
+    }catch (IllegalStateException e) {
+      mRecorderStateListener.onError(
+          RecorderStateListener.ERROR_CODE_SET_OUTPUT);
+    }
+  }
+
+  /**
+   * Set
+   * {@link MediaRecorder#setAudioEncoder(int)}
+   * {@link MediaRecorder#setVideoEncoder(int)}
+   * {@link MediaRecorder#setOutputFile(FileDescriptor)}
+   * {@link MediaRecorder#setVideoSize(int, int)}
+   * {@link MediaRecorder#setVideoFrameRate(int)}
+   * {@link MediaRecorder#setPreviewDisplay(Surface)}
+   */
+  public void dataSourceConfigure() {
+    try {
+      mMediaRecorder.setAudioEncoder(mBCameraParams.getAudioEncoder());
+      mMediaRecorder.setVideoEncoder(mBCameraParams.getVideoEncoder());
+      currentRecordVideoFileUrl =
+          CameraUtil.getOutputMediaFile(mContext, mBCameraParams.getSavePath(), ".mp4").getPath();
+      mMediaRecorder.setOutputFile(currentRecordVideoFileUrl);
+      mMediaRecorder.setVideoSize(supportedWidth, supportedHeight);
+      mMediaRecorder.setVideoFrameRate(mBCameraParams.getQualityProfile().videoFrameRate);
+      mMediaRecorder.setPreviewDisplay(getHolder().getSurface());
+      mRecorderStateListener.onRecorderStateChanged(
+          RecorderStateListener.CODE_OF_STATE_DATASOURCE_CONFIGURED);
+    } catch (IllegalStateException e) {
+      mRecorderStateListener.onError(
+          RecorderStateListener.ERROR_CODE_CONFIG_DATASOURCE_AFTER_PREPARED_BEFORE_OUTPUT);
+    }
+
+  }
+
+  /**
+   * Just {@link MediaRecorder#prepare()} for now
+   */
+  public void prepare() {
+    try {
+      mMediaRecorder.prepare();
+      mRecorderStateListener.onRecorderPrepared();
+      mRecorderStateListener.onRecorderStateChanged(RecorderStateListener.CODE_OF_STATE_PREPARED);
+    } catch (IOException e) {
+      mRecorderStateListener.onError(RecorderStateListener.ERROR_CODE_OF_PREPARE_RECORD_FAILED);
+      error();
+      e.printStackTrace();
+    } catch (IllegalStateException e) {
+      mRecorderStateListener.onError(RecorderStateListener.ERROR_CODE_OF_PREPARE_AFTER_START_BEFORE_OUTPUT);
+    }
+  }
+
+  /**
+   * Just after {@link MediaRecorder#start()} for now
+   */
+  public void startRecording() {
+    try {
+      mMediaRecorder.start();
+      mRecorderStateListener.onRecorderStateChanged(RecorderStateListener.CODE_OF_STATE_RECORDING);
+    } catch (IllegalStateException e) {
+      mRecorderStateListener.onError(RecorderStateListener.ERROR_CODE_OF_START_BEFORE_PREPARE);
+    }
+  }
+
+  /**
+   * Just after {@link MediaRecorder#stop()} for now
+   */
+  public void stopRecording() {
+    try {
+      mMediaRecorder.stop();
+      mRecorderStateListener.onRecorderStateChanged(RecorderStateListener.CODE_OF_STATE_STOP);
+    } catch (IllegalStateException e) {
+      mRecorderStateListener.onError(RecorderStateListener.ERROR_CODE_OF_START_BEFORE_PREPARE);
+    }
+  }
+
+  /**
+   * Just {@link MediaRecorder#release()} for now
+   */
+  public void release() {
+    try {
+      mMediaRecorder.release();
+      mRecorderStateListener.onRecorderStateChanged(RecorderStateListener.CODE_OF_STATE_RELEASED);
+    } catch (Exception e) {
+      mRecorderStateListener.onError(RecorderStateListener.ERROR_CODE_OF_RELEASE);
+    }
+  }
+
+  /**
+   * Handle errors and then {@link MediaRecorder#reset()}
+   */
+  public void error() {
+    mMediaRecorder.reset();
+    mRecorderStateListener.onRecorderStateChanged(RecorderStateListener.CODE_OF_STATE_RESETED);
+  }
+
+  /**
+   * Just {@link MediaRecorder#reset()} for now
+   */
+  public void reset() {
+    mMediaRecorder.reset();
+    mRecorderStateListener.onRecorderStateChanged(RecorderStateListener.CODE_OF_STATE_RESETED);
   }
 }

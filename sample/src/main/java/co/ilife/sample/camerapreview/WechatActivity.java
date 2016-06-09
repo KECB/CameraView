@@ -2,6 +2,7 @@ package co.ilife.sample.camerapreview;
 
 import android.content.Intent;
 import android.graphics.Point;
+import android.hardware.camera2.CameraDevice;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBar;
@@ -111,6 +112,7 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
         return false;
       }
     });
+
     mCameraContainer = (FrameLayout) findViewById(R.id.camera_preview);
 
     mRecordButton = (ImageButton) findViewById(R.id.record_button);
@@ -122,7 +124,6 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
             if (!isRecordFinished) {
               event.setLocation(0,0);
               mStartTime = System.currentTimeMillis();
-              mCameraPreview.initial();
               mCameraPreview.startRecording();
               mHandler.post(run);
             }
@@ -167,11 +168,17 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
     mCameraContainer.addView(mCameraPreview);
     Log.d(TAG, "onResume: "+TAG);
     mCameraPreview.initHolder();
+
   }
 
   @Override public void onPause() {
     super.onPause();
     mCameraPreview.releaseMediaRecorder();
+  }
+
+  @Override public void onDestroy(){
+    mCameraPreview.releaseCamera();
+    super.onDestroy();
   }
 
   private void hide() {

@@ -303,6 +303,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
       Log.d(TAG, "Error starting camera preview: " + e.getMessage());
     }
 
+    initial();
   }
 
   @Override public void surfaceDestroyed(SurfaceHolder holder) {
@@ -335,6 +336,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     }
     mMediaRecorder.reset();
     try {
+      mCamera.unlock();
+      mMediaRecorder.setCamera(mCamera);
+      mMediaRecorder.setOrientationHint(90); // Make output file orientation portrait
       mMediaRecorder.setAudioSource(mBCameraParams.getAudioSource());
       mMediaRecorder.setVideoSource(mBCameraParams.getVideoSource());
       mRecorderStateListener.onRecorderStateChanged(RecorderStateListener.CODE_OF_STATE_INITIALIZED);

@@ -7,7 +7,6 @@ import android.os.Handler;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -95,7 +94,10 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
       Log.d(TAG, "run: " + url);
       setResult(RESULT_OK, intent);
       finish();
+    }else {
+      mCameraPreview.initial();
     }
+
   }
 
   @Override protected void onCreate(Bundle savedInstanceState) {
@@ -124,7 +126,7 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
     mCameraPreview.setAspectRatio(mWindowSize.x, mWindowSize.y);
     mCameraPreview.setOnTouchListener(new View.OnTouchListener() {
       @Override public boolean onTouch(View v, MotionEvent event) {
-        mCameraPreview.autoFocus();
+        //mCameraPreview.autoFocus();
         return false;
       }
     });

@@ -34,6 +34,7 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
   private long mStartTime, mDuration;
   private boolean isRecording = false;
   private boolean isReachCancelMark = false;
+  private boolean isFinished = false;
   float Y = 0;
 
   private FrameLayout mCameraContainer;
@@ -94,6 +95,10 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
       Log.d(TAG, "run: " + url);
       setResult(RESULT_OK, intent);
       finish();
+      isFinished = true;
+      mCameraPreview.releaseMediaRecorder();
+      mCameraPreview.releaseCamera();
+      return;
     }else {
       mCameraPreview.initial();
     }
@@ -147,9 +152,11 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
             mHandler.post(run);
             break;
           case MotionEvent.ACTION_UP:
+            if (isFinished) return false;
             recordFinish();
             break;
           case MotionEvent.ACTION_MOVE:
+            if (isFinished) return false;
             if (event.getY() - Y < -300) {
               Y = 0;
               isReachCancelMark = true;
@@ -168,6 +175,20 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
 
     swipeStopTV = (TextView) findViewById(R.id.swipe_stop_tv);
     looseStopTV = (TextView) findViewById(R.id.loose_stop_tv);
+
+    swipeStopTV.setOnTouchListener(new View.OnTouchListener() {
+      @Override public boolean onTouch(View v, MotionEvent event) {
+        Log.d(TAG, "onTouch: swipstop");
+        return false;
+      }
+    });
+    
+    looseStopTV.setOnTouchListener(new View.OnTouchListener() {
+      @Override public boolean onTouch(View v, MotionEvent event) {
+        Log.d(TAG, "onTouch: loose Stop");
+        return false;
+      }
+    });
   }
 
   private void stopRecord() {
@@ -187,10 +208,12 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
 
   @Override public void onPause() {
     super.onPause();
+    if (isFinished) return;
     mCameraPreview.releaseMediaRecorder();
   }
 
   @Override public void onDestroy() {
+    if (isFinished) return;
     mCameraPreview.releaseCamera();
     super.onDestroy();
   }

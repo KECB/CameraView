@@ -90,7 +90,7 @@ public class BCameraParams {
   }
 
   public int getVideoFrameRate() {
-    return mVideoFrameRate;
+    return mVideoFrameRate == -1 ? getQualityProfile().videoFrameRate : mVideoFrameRate;
   }
 
   public void setVideoFrameRate(int videoFrameRate) {
@@ -98,7 +98,7 @@ public class BCameraParams {
   }
 
   public int getVideoEncodingBitRate() {
-    return mVideoEncodingBitRate;
+    return mVideoEncodingBitRate==-1? getQualityProfile().videoBitRate : mVideoEncodingBitRate;
   }
 
   public void setVideoEncodingBitRate(int videoEncodingBitRate) {

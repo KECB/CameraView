@@ -64,7 +64,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     setCamera(mBCameraParams.isCameraFacingBack());
     mSupportedSizes = CameraUtil.supportPreviewSizes(mCamera);
     for (Camera.Size size : mSupportedSizes) {
-      if (640 <= size.width & size.width <= 1280) {
+      if (720 <= size.width & size.width <= 1280) {
         supportedWidth = size.width;
         supportedHeight = size.height;
         //parameters.setPreviewSize(size.width, size.height);
@@ -151,7 +151,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     mMediaRecorder.setProfile(mBCameraParams.getQualityProfile());
 
     // Step 4: Set ouput file
-    currentRecordVideoFileUrl = CameraUtil.getOutputMediaFile(mContext, mBCameraParams.getSavePath(),".mp4").getPath();
+    //currentRecordVideoFileUrl = CameraUtil.getOutputMediaFile(mContext, mBCameraParams.getSavePath(),".mp4").getPath();
     Log.d(TAG, "prepareVideoRecorder: "+currentRecordVideoFileUrl);
     mMediaRecorder.setOutputFile(currentRecordVideoFileUrl);
 
@@ -210,7 +210,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   }
 
   public void autoFocus(){
-    //mCamera.cancelAutoFocus();
+    mCamera.cancelAutoFocus();
     mCamera.autoFocus(new Camera.AutoFocusCallback() {
       @Override public void onAutoFocus(boolean success, Camera camera) {
         if (!success) Log.d(TAG, "onAutoFocus: Failed");
@@ -373,13 +373,14 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
    */
   public void dataSourceConfigure() {
     try {
+      mMediaRecorder.setVideoEncodingBitRate(mBCameraParams.getVideoEncodingBitRate());
       mMediaRecorder.setAudioEncoder(mBCameraParams.getAudioEncoder());
       mMediaRecorder.setVideoEncoder(mBCameraParams.getVideoEncoder());
       currentRecordVideoFileUrl =
           CameraUtil.getOutputMediaFile(mContext, mBCameraParams.getSavePath(), ".mp4").getPath();
       mMediaRecorder.setOutputFile(currentRecordVideoFileUrl);
       mMediaRecorder.setVideoSize(supportedWidth, supportedHeight);
-      mMediaRecorder.setVideoFrameRate(mBCameraParams.getQualityProfile().videoFrameRate);
+      mMediaRecorder.setVideoFrameRate(mBCameraParams.getVideoFrameRate());
       mMediaRecorder.setPreviewDisplay(getHolder().getSurface());
       mRecorderStateListener.onRecorderStateChanged(
           RecorderStateListener.CODE_OF_STATE_DATASOURCE_CONFIGURED);
@@ -428,6 +429,10 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
       mRecorderStateListener.onRecorderStateChanged(RecorderStateListener.CODE_OF_STATE_STOP);
     } catch (IllegalStateException e) {
       mRecorderStateListener.onError(RecorderStateListener.ERROR_CODE_OF_START_BEFORE_PREPARE);
+    } catch (RuntimeException e) {
+      //TODO delete the failed file.
+      //deleteMediaFile(mContext, currentRecordVideoFileUrl);
+      initial();
     }
   }
 

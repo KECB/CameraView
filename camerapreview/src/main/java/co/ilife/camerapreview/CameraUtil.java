@@ -79,6 +79,20 @@ public class CameraUtil {
     return mediaFile;
   }
 
+  /** Create a File for saving an video */
+  public static boolean deleteMediaFile(Context context, @Nullable String path){
+    // To be safe, you should check that the SDCard is mounted
+    // using Environment.getExternalStorageState() before doing this.
+    if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) return false;
+    if (path == null || path.isEmpty()) {
+      path = context.getExternalCacheDir().getAbsolutePath();
+    }
+
+    File mediaStorageDir = new File(path);
+    boolean isDeleted = mediaStorageDir.delete();
+    return isDeleted;
+  }
+
   public static List<Camera.Size> supportPreviewSizes(Camera camera) {
     return camera.getParameters().getSupportedPreviewSizes();
   }

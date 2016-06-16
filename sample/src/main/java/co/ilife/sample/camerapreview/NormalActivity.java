@@ -15,7 +15,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import co.ilife.camerapreview.BCamera;
+import co.ilife.camerapreview.BCameraParams;
 import co.ilife.camerapreview.CameraPreview;
 
 public class NormalActivity extends AppCompatActivity {
@@ -60,10 +60,9 @@ public class NormalActivity extends AppCompatActivity {
 
     ((AudioManager)getSystemService(Context.AUDIO_SERVICE)).setStreamMute(AudioManager.STREAM_SYSTEM,true);
      //Create our Preview view and set it as the content of our activity.
-    BCamera bCamera = new BCamera(this);
-    bCamera.setCamera(true);
-    bCamera.setQualityProfile(BCamera.QUALITY_TIME_LAPSE_HIGH);
-    mPreview = new CameraPreview(this, null, bCamera);
+    BCameraParams bCameraParams = new BCameraParams();
+    bCameraParams.setQualityProfile(BCameraParams.QUALITY_TIME_LAPSE_HIGH);
+    mPreview = new CameraPreview(this, null, bCameraParams, null);
     if (mWindowSize == null)
       mWindowSize = new Point();
     getWindowManager().getDefaultDisplay().getSize(mWindowSize);

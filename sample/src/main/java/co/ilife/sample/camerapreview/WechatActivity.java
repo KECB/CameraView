@@ -2,7 +2,6 @@ package co.ilife.sample.camerapreview;
 
 import android.content.Intent;
 import android.graphics.Point;
-import android.hardware.camera2.CameraDevice;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBar;
@@ -35,6 +34,7 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
   private RoundCornerProgressBar leftProgress, rightProgress;
   private long mStartTime, mDuration;
   private boolean isRecordFinished = false;
+  private boolean isRecording = false;
   float Y = 0;
 
   private FrameLayout mCameraContainer;
@@ -78,7 +78,7 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
     intent.putExtra(MainActivity.VIDEO_URL, url);
     Log.d(TAG, "run: "+ url);
     setResult(RESULT_OK, intent);
-    mCameraPreview.stopRecording();
+    stopRecord();
     finish();
   }
 
@@ -102,6 +102,8 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
 
     mBCameraParams = new BCameraParams();
     mBCameraParams.setQualityProfile(BCameraParams.QUALITY_480P);
+    mBCameraParams.setVideoFrameRate(30);
+    mBCameraParams.setVideoEncodingBitRate(1*1024*1024);
 
     mCameraPreview = new CameraPreview(this, null, mBCameraParams, this);
 
@@ -135,7 +137,7 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
               break;
             }
             if (!isRecordFinished){
-              mCameraPreview.stopReocrd();
+              stopRecord();
             }
             isRecordFinished = false;
             resetProgress();
@@ -146,11 +148,17 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
               mHandler.removeCallbacks(run);
               isRecordFinished = true;
               if (!isRecordFinished){
-                mCameraPreview.stopReocrd();
+                stopRecord();
               }
               resetProgress();
             }
             break;
+          //case MotionEvent.ACTION_CANCEL:
+          //  mHandler.removeCallbacks(run);
+          //  isRecordFinished = false;
+          //  stopRecord();
+          //  resetProgress();
+          //  break;
         }
         return false;
       }
@@ -160,6 +168,11 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
     rightProgress = (RoundCornerProgressBar) findViewById(R.id.right_progress);
     leftProgress.setMax(MAX_PROGRESS);
     rightProgress.setMax(MAX_PROGRESS);
+  }
+
+  private void stopRecord() {
+    resizeProgressView(0);
+    mCameraPreview.stopRecording();
   }
 
   @Override public void onResume() {
@@ -217,10 +230,12 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
         break;
       case CODE_OF_STATE_RECORDING:
         Log.d(TAG, "onRecorderStateChanged: recording");
-
+        isRecording = true;
         break;
       case CODE_OF_STATE_STOP:
         Log.d(TAG, "onRecorderStateChanged: stop");
+        isRecordFinished = true;
+        isRecording = false;
         break;
       case CODE_OF_STATE_RELEASED:
         Log.d(TAG, "onRecorderStateChanged: released");

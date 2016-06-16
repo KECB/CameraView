@@ -13,4 +13,7 @@
   <string name="dummy_content">DUMMY\nCONTENT</string>
   <string name="permission_camera_rationale">Permission Camera</string>
   <string name="ok">OK</string>
+  <string name="swipe_up_to_stop">上滑取消</string>
+  <string name="loose_to_stop">松开取消</string>
+
 </resources>

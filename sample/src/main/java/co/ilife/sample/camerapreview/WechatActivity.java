@@ -7,22 +7,23 @@ import android.os.Handler;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import co.ilife.camerapreview.BCameraParams;
 import co.ilife.camerapreview.CameraPreview;
 import co.ilife.camerapreview.RecorderStateListener;
-import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class WechatActivity extends AppCompatActivity implements RecorderStateListener{
+public class WechatActivity extends AppCompatActivity implements RecorderStateListener {
 
   private final String TAG = WechatActivity.class.getSimpleName();
 
@@ -31,32 +32,28 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
   private final int MAX_PROGRESS = 8000;
   private final int MINIMUM_PROGRESS = 3000;
   private ImageButton mRecordButton;
-  private RoundCornerProgressBar leftProgress, rightProgress;
   private long mStartTime, mDuration;
-  private boolean isRecordFinished = false;
   private boolean isRecording = false;
+  private boolean isReachCancelMark = false;
   float Y = 0;
 
   private FrameLayout mCameraContainer;
   private CameraPreview mCameraPreview;
   private Point mWindowSize;
   private View mProgress;
+  private TextView swipeStopTV, looseStopTV;
 
   Handler mHandler = new Handler();
   Runnable run = new Runnable() {
     @Override public void run() {
       mDuration = (System.currentTimeMillis() - mStartTime);
-      leftProgress.setProgress((int)mDuration);
-      rightProgress.setProgress((int)mDuration);
       resizeProgressView(mDuration);
-      if (mDuration<MAX_PROGRESS){
+      if (mDuration < MAX_PROGRESS) {
         mHandler.postDelayed(this, 0);
-      }else {
+      } else {
         //mCameraPreview.stopReocrd();
         //mCameraPreview.releaseMediaRecorder();
         //mCameraPreview.unlockCamera();
-        resetProgress();
-        isRecordFinished = true;
         recordFinish();
       }
     }
@@ -64,27 +61,41 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
 
   private void resizeProgressView(long duration) {
     //Log.d(TAG, "resizeProgressView: "+(MAX_PROGRESS - duration)*100/MAX_PROGRESS*mWindowSize.x/100);
-    int width = (int) (MAX_PROGRESS - duration)*100/MAX_PROGRESS*mWindowSize.x/100;
+    int width = (int) (MAX_PROGRESS - duration) * 100 / MAX_PROGRESS * mWindowSize.x / 100;
     //Log.d(TAG, "resizeProgressView: " + width);
     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, mProgress.getHeight());
     params.gravity = Gravity.CENTER_HORIZONTAL;
     mProgress.setLayoutParams(params);
+    if (isReachCancelMark) {
+      mProgress.setBackgroundColor(getResources().getColor(R.color.red));
+      //控制textview
+      swipeStopTV.setVisibility(View.INVISIBLE);
+      looseStopTV.setVisibility(View.VISIBLE);
+    } else {
+      mProgress.setBackgroundColor(getResources().getColor(R.color.green));
+      //控制textview
+      swipeStopTV.setVisibility(View.VISIBLE);
+      looseStopTV.setVisibility(View.INVISIBLE);
+    }
+    if (duration == 0) {
+      mProgress.setBackgroundColor(getResources().getColor(R.color.green));
+      swipeStopTV.setVisibility(View.INVISIBLE);
+      looseStopTV.setVisibility(View.INVISIBLE);
+    }
   }
 
   private void recordFinish() {
     mHandler.removeCallbacks(run);
-    String url = mCameraPreview.getCurrentFileUrl();
-    Intent intent = new Intent();
-    intent.putExtra(MainActivity.VIDEO_URL, url);
-    Log.d(TAG, "run: "+ url);
-    setResult(RESULT_OK, intent);
     stopRecord();
-    finish();
-  }
-
-  private void resetProgress() {
-    leftProgress.setProgress(0);
-    rightProgress.setProgress(0);
+    //Log.d(TAG, "recordFinish: "+ mDuration);
+    if (mDuration > MINIMUM_PROGRESS && isReachCancelMark == false || mDuration >= MAX_PROGRESS) {
+      String url = mCameraPreview.getCurrentFileUrl();
+      Intent intent = new Intent();
+      intent.putExtra(MainActivity.VIDEO_URL, url);
+      Log.d(TAG, "run: " + url);
+      setResult(RESULT_OK, intent);
+      finish();
+    }
   }
 
   @Override protected void onCreate(Bundle savedInstanceState) {
@@ -94,16 +105,19 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
     Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
     hide();
 
+    initView();
+  }
+
+  private void initView() {
     mProgress = (View) findViewById(R.id.progress);
 
-    if (mWindowSize == null)
-      mWindowSize = new Point();
+    if (mWindowSize == null) mWindowSize = new Point();
     getWindowManager().getDefaultDisplay().getSize(mWindowSize);
 
     mBCameraParams = new BCameraParams();
     mBCameraParams.setQualityProfile(BCameraParams.QUALITY_480P);
     mBCameraParams.setVideoFrameRate(30);
-    mBCameraParams.setVideoEncodingBitRate(1*1024*1024);
+    mBCameraParams.setVideoEncodingBitRate(1 * 1024 * 1024);
 
     mCameraPreview = new CameraPreview(this, null, mBCameraParams, this);
 
@@ -122,55 +136,41 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
       @Override public boolean onTouch(View v, MotionEvent event) {
         switch (event.getAction()) {
           case MotionEvent.ACTION_DOWN:
+            swipeStopTV.setVisibility(View.VISIBLE);
+            isReachCancelMark = false;
             Y = event.getY();
-            if (!isRecordFinished) {
-              event.setLocation(0,0);
-              mStartTime = System.currentTimeMillis();
-              mCameraPreview.startRecording();
-              mHandler.post(run);
-            }
+            event.setLocation(0, 0);
+            mStartTime = System.currentTimeMillis();
+            mCameraPreview.startRecording();
+            mHandler.post(run);
             break;
           case MotionEvent.ACTION_UP:
-            mHandler.removeCallbacks(run);
-            if (mDuration > MINIMUM_PROGRESS) {
-              recordFinish();
-              break;
-            }
-            if (!isRecordFinished){
-              stopRecord();
-            }
-            isRecordFinished = false;
-            resetProgress();
+            recordFinish();
             break;
           case MotionEvent.ACTION_MOVE:
             if (event.getY() - Y < -300) {
               Y = 0;
-              mHandler.removeCallbacks(run);
-              isRecordFinished = true;
-              if (!isRecordFinished){
-                stopRecord();
-              }
-              resetProgress();
+              isReachCancelMark = true;
+              looseStopTV.setVisibility(View.VISIBLE);
+              mProgress.setBackgroundColor(getResources().getColor(R.color.red));
+            } else {
+              isReachCancelMark = false;
+              looseStopTV.setVisibility(View.INVISIBLE);
+              mProgress.setBackgroundColor(getResources().getColor(R.color.green));
             }
             break;
-          //case MotionEvent.ACTION_CANCEL:
-          //  mHandler.removeCallbacks(run);
-          //  isRecordFinished = false;
-          //  stopRecord();
-          //  resetProgress();
-          //  break;
         }
         return false;
       }
     });
 
-    leftProgress = (RoundCornerProgressBar) findViewById(R.id.left_progress);
-    rightProgress = (RoundCornerProgressBar) findViewById(R.id.right_progress);
-    leftProgress.setMax(MAX_PROGRESS);
-    rightProgress.setMax(MAX_PROGRESS);
+    swipeStopTV = (TextView) findViewById(R.id.swipe_stop_tv);
+    looseStopTV = (TextView) findViewById(R.id.loose_stop_tv);
   }
 
   private void stopRecord() {
+    // 当小于8秒,上滑则取消录制
+    // 小于3秒,取消录制
     resizeProgressView(0);
     mCameraPreview.stopRecording();
   }
@@ -179,9 +179,8 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
     super.onResume();
     mCameraContainer.removeAllViews();
     mCameraContainer.addView(mCameraPreview);
-    Log.d(TAG, "onResume: "+TAG);
+    Log.d(TAG, "onResume: " + TAG);
     mCameraPreview.initHolder();
-
   }
 
   @Override public void onPause() {
@@ -189,7 +188,7 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
     mCameraPreview.releaseMediaRecorder();
   }
 
-  @Override public void onDestroy(){
+  @Override public void onDestroy() {
     mCameraPreview.releaseCamera();
     super.onDestroy();
   }
@@ -234,7 +233,6 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
         break;
       case CODE_OF_STATE_STOP:
         Log.d(TAG, "onRecorderStateChanged: stop");
-        isRecordFinished = true;
         isRecording = false;
         break;
       case CODE_OF_STATE_RELEASED:
@@ -243,12 +241,11 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
       case CODE_OF_STATE_RESETED:
         Log.d(TAG, "onRecorderStateChanged: reseted");
         break;
-
     }
   }
 
   @Override public void onError(int code) {
-    Log.d(TAG, "onError code: "+code);
+    Log.d(TAG, "onError code: " + code);
     switch (code) {
       case ERROR_CODE_OF_OPEN_CAMERA_FAILED:
         Log.d(TAG, "onError: open camera failed");
@@ -269,6 +266,5 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
         Log.d(TAG, "onError: start before prepare");
         break;
     }
-
   }
 }

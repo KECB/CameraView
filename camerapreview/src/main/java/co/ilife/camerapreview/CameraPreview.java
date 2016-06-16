@@ -12,6 +12,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.List;
@@ -175,17 +176,26 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
   public void releaseMediaRecorder() {
     if (mMediaRecorder != null) {
-      mMediaRecorder.reset();   // clear recorder configuration
-      mMediaRecorder.release(); // release the recorder object
-      mMediaRecorder = null;
-      mCamera.lock();           // lock camera for later use
+      try {
+        mMediaRecorder.reset();   // clear recorder configuration
+        mMediaRecorder.release(); // release the recorder object
+        mMediaRecorder = null;
+        mCamera.lock();           // lock camera for later use
+      } catch (RuntimeException e){
+        Log.d(TAG, "releaseMediaRecorder: "+e.getMessage());
+      }
     }
   }
 
   public void releaseCamera() {
     if (mCamera != null) {
-      mCamera.stopPreview();
-      mCamera.release();        // release the camera for other applications
+      try {
+        mCamera.stopPreview();
+        mCamera.release();        // release the camera for other applications
+      } catch (RuntimeException e){
+        Log.d(TAG, "releaseCamera: "+e.getMessage());
+      }
+
     }
   }
 
@@ -315,7 +325,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
   private void setCamera(boolean cameraFacingBack) {
     //TODO: 6/3/16 判断Camera是否被锁
     if (mCamera == null) {
-      mCamera = mBCameraParams.isCameraFacingBack() ? Camera.open() : Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
+      try {
+        mCamera = mBCameraParams.isCameraFacingBack() ? Camera.open()
+            : Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
+      } catch (RuntimeException e) {
+        ((Activity)mContext).finish();
+        Toast.makeText(mContext, "Camera is being used.", Toast.LENGTH_SHORT).show();
+      }
       return;
     }
     if (mBCameraParams.isCameraFacingBack() != cameraFacingBack) {
@@ -341,7 +357,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
       mMediaRecorder.setOrientationHint(90); // Make output file orientation portrait
       mMediaRecorder.setAudioSource(mBCameraParams.getAudioSource());
       mMediaRecorder.setVideoSource(mBCameraParams.getVideoSource());
-      mRecorderStateListener.onRecorderStateChanged(RecorderStateListener.CODE_OF_STATE_INITIALIZED);
+      mRecorderStateListener.onRecorderStateChanged(
+          RecorderStateListener.CODE_OF_STATE_INITIALIZED);
     } catch (IllegalStateException e) {
       mRecorderStateListener.onError(
           RecorderStateListener.ERROR_CODE_OF_SET_AUDIO_VIDEO_SOURCE_AFTER_SET_OUTPUT);

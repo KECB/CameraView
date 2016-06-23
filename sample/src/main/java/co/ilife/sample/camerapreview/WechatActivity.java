@@ -213,9 +213,9 @@ public class WechatActivity extends AppCompatActivity implements RecorderStateLi
   }
 
   @Override public void onDestroy() {
+    super.onDestroy();
     if (isFinished) return;
     mCameraPreview.releaseCamera();
-    super.onDestroy();
   }
 
   private void hide() {

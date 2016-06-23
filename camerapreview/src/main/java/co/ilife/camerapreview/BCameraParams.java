@@ -12,9 +12,11 @@ import java.lang.annotation.RetentionPolicy;
  */
 public class BCameraParams {
 
-  @IntDef({QUALITY_HIGH, QUALITY_LOW, QUALITY_480P, QUALITY_720P, QUALITY_1080P, QUALITY_TIME_LAPSE_HIGH, QUALITY_TIME_LAPSE_LOW})
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface QualityProfile {
+  @IntDef({
+      QUALITY_HIGH, QUALITY_LOW, QUALITY_480P, QUALITY_720P, QUALITY_1080P, QUALITY_TIME_LAPSE_HIGH,
+      QUALITY_TIME_LAPSE_LOW, QUALITY_HIGH_SPEED_HIGH
+  }) @Retention(RetentionPolicy.SOURCE) public @interface QualityProfile {
+
   }
 
   public static final int QUALITY_HIGH = CamcorderProfile.QUALITY_HIGH;
@@ -24,6 +26,7 @@ public class BCameraParams {
   public static final int QUALITY_1080P = CamcorderProfile.QUALITY_1080P;
   public static final int QUALITY_TIME_LAPSE_LOW  = CamcorderProfile.QUALITY_TIME_LAPSE_LOW;
   public static final int QUALITY_TIME_LAPSE_HIGH = CamcorderProfile.QUALITY_TIME_LAPSE_HIGH;
+  public static final int QUALITY_HIGH_SPEED_HIGH = CamcorderProfile.QUALITY_HIGH_SPEED_480P;
 
   public static final int STATUS_RECORDED = 1;
 

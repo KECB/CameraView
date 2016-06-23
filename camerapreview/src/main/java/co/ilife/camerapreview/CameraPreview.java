@@ -390,6 +390,12 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
    */
   public void dataSourceConfigure() {
     try {
+      if (mBCameraParams.getQualityProfile().quality == BCameraParams.QUALITY_TIME_LAPSE_HIGH){
+        mMediaRecorder.setCaptureRate(mBCameraParams.getQualityProfile().videoFrameRate/12.0f);
+      }
+      if (mBCameraParams.getQualityProfile().quality == BCameraParams.QUALITY_HIGH_SPEED_HIGH){
+        mMediaRecorder.setCaptureRate(mBCameraParams.getQualityProfile().videoFrameRate/0.25f);
+      }
       mMediaRecorder.setVideoEncodingBitRate(mBCameraParams.getVideoEncodingBitRate());
       mMediaRecorder.setAudioEncoder(mBCameraParams.getAudioEncoder());
       mMediaRecorder.setVideoEncoder(mBCameraParams.getVideoEncoder());
@@ -449,7 +455,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     } catch (RuntimeException e) {
       //TODO delete the failed file.
       //deleteMediaFile(mContext, currentRecordVideoFileUrl);
-      initial();
+      //initial();
     }
   }
 
